@@ -1,3 +1,7 @@
+# NOTE: this python file should only be running on the RaspPi
+# Required: picamera library
+#           PI camera connected on the PI camera connector
+
 # Web streaming example
 # Source code from the official PiCamera package
 # http://picamera.readthedocs.io/en/latest/recipes2.html#web-streaming
