@@ -38,7 +38,7 @@
 ### project_name.sof SRAM Object File
 
 # software binary files
-
+*/output_files/*
 !/*.gitignore
 ##
 !*.qpf
@@ -51,7 +51,6 @@
 !*.bsf
 !**/class.ptf
 !*.tbd
-!*.sof
 ## tbd
 
 !*.tcl
