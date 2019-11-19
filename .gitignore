@@ -39,7 +39,6 @@
 
 # software binary files
 
-/*
 !/*.gitignore
 ##
 !*.qpf
@@ -384,7 +383,6 @@ dmypy.json
 *.tmp
 *.rst
 *.os
-*.js
 *.pb
 *.dcp
 *.hwdef
@@ -471,7 +469,6 @@ dmypy.json
 *.c
 *.h
 *.vho
-*.html
 */*/bd/*/ip/*/*.tcl
 */*/*/bd/*/ip/*/*.tcl
 hw_handoff
@@ -551,8 +548,6 @@ _xmsgs/
 ##	This is an example .gitignore file for Vivado, please treat it as an example as
 ##	it might not be complete. In addition, XAPP 1165 should be followed.
 #########
-#Exclude all
-*
 !*/
 !.gitignore
 ###########################################################################
