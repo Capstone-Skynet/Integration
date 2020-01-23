@@ -24,14 +24,13 @@ namespace SkynetGUI
         Thread server_thread;
         Thread time_thread;
         
-
-
-
         public Form1()
         {
             InitializeComponent();
             StartListener();    // Begins listening for a connection once the program has begun
             StartTime();        // Begins the time
+
+            status_label.Text = "SkynetGUI successfully loaded";
         }
 
 
@@ -87,6 +86,7 @@ namespace SkynetGUI
                         () =>
                         {
                             listBox1.Items.Add(string.Format("New connection from {0}", client.Client.RemoteEndPoint));
+                            listbox_bottom_index();
                         }
                     ));
                 ThreadPool.QueueUserWorkItem(ProcessClient, client);
@@ -117,6 +117,7 @@ namespace SkynetGUI
                             () =>
                             {
                                 listBox1.Items.Add("Image sucessfully received");
+                                listbox_bottom_index();
                             }
                         ));
                     main_image_box.Image = returnImage;
@@ -177,6 +178,11 @@ namespace SkynetGUI
 
         private void button_test_Click(object sender, EventArgs e)
         {
+        }
+
+        private void listbox_bottom_index()
+        {
+            listBox1.TopIndex = listBox1.Items.Count - 1;
         }
     }
 }
