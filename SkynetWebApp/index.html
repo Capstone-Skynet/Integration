@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>Skynet WebApp</title>
+    <style>
+      .container {  
+        width: 100%;
+        height: 100%;
+      }
+      .main-header {
+        height: 5%;
+        left: 0px;
+        right: 0px;
+        background-color: aliceblue;
+        padding: 20px 20px 20px 20px;
+      }
+      .left-panel {
+        width: 15%;
+        height: 360px;
+        float: left;
+        background-color: #808080;
+        padding: 20px 20px 20px 20px;
+      }
+      .center-panel {
+        width: 480px;
+        height: 360px;
+        float: left;
+        padding: 20px 20px 20px 20px;
+        background-color: lightblue;
+      }
+      .right-panel {
+        height: 360px;
+        overflow: hidden;
+        background-color: #808080;
+        padding: 20px 20px 20px 20px;
+      }
+      .footeh {
+        height: 20px;
+        overflow: hidden;
+        left: 0px;
+        right: 0px;
+        padding: 20px 20px 20px 20px;
+        background-color: aliceblue;
+      }
+    </style>
+</head>
+<body>
+  <div class="container">
+    <div class="main-header">
+        <h2>Skynet WebApp </h2>
+    </div>
+    <div class="left-panel">
+        <p> This is the left-panel </p>
+    </div>
+    <div class="center-panel">
+        <p> This is the center-panel </p>
+        <img id="main-image" src="" />
+    </div>
+    <div class="right-panel">
+        <p> This is the right panel</p>
+    </div>
+    <div class="footeh">
+        <p> This is the footer </p>
+        <p id="test1"></p>
+    </div>    
+</div>
+</body>
+</html>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  var socket = io.connect('http://localhost');
+  socket.on('news', function (data) {
+    socket.emit('my other event', { my: 'data' });
+  });
+
+  // Image Stuff
+  var timer = setInterval(imagecall, 400)
+  function imagecall () {
+    socket.emit('image_callcheck'); // calls server to check and send next image
+  }
+
+  // sourced from https://gist.github.com/companje/b95e735650f1cd2e2a41
+  var image = document.getElementById('main-image');
+  socket.on('imageConversionByServer', function(data) {
+    //image.attr("src",data);
+    image.setAttribute('src', data);
+  });
+</script>
