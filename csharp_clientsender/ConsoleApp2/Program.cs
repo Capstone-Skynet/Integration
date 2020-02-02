@@ -16,7 +16,7 @@ namespace ConsoleApp2
 
         static void Main(string[] args)
         {
-            Connect("127.0.0.1", "hello there");
+            Connect("0.0.0.0", "hello there");
         }
 
         static void Connect(String server, String message)
@@ -27,7 +27,7 @@ namespace ConsoleApp2
                 // Note, for this client to work you need to have a TcpServer 
                 // connected to the same address as specified by the server, port
                 // combination.
-                Int32 port = 13000;
+                Int32 port = 58790;
                 TcpClient client = new TcpClient(server, port);
 
                 // Get a client stream for reading and writing.

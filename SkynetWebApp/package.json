@@ -1,0 +1,27 @@
+{
+    "name": "test1",
+    "version": "1.0.0",
+    "description": "Capstone-Skynet Base Station WebApp",
+    "main": "index.js",
+    "scripts": {
+      "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/Capstone-Skynet/SkynetWebApp.git"
+    },
+    "author": "Capstone-Skynet",
+    "license": "ISC",
+    "bugs": {
+      "url": "https://github.com/Capstone-Skynet/SkynetWebApp/issues"
+    },
+    "homepage": "https://github.com/Capstone-Skynet/PISS#readme",
+    "dependencies": {
+      "express": "^4.17.1",
+      "install": "^0.13.0",
+      "npm": "^6.13.0",
+      "p5": "^0.10.2",
+      "socket.io": "^2.3.0",
+      "socket.io-client": "^2.3.0"
+    }
+  }
