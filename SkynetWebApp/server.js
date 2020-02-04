@@ -14,7 +14,8 @@ app.get('/', function (req, res) {
 io.on('connection', function (socket) {
   socket.emit('news', { hello: 'world' });
   socket.on('my other event', function (data) {
-	  console.log(data);
+    //socket.emit('pyimg2webapp', "wtf");
+    console.log(data);
   });
  
   // image sending sourced from https://gist.github.com/companje/b95e735650f1cd2e2a41
@@ -28,6 +29,15 @@ io.on('connection', function (socket) {
       i = 1;
     else
       i++;
+  });
+
+  // Calling the python script to receive image.
+  socket.on('py_img_receive', function(data) {
+    socket.broadcast.emit('pyimg2webapp', "data:image/png;base64," + data.toString());
+  });
+
+  socket.on('pytest', function(data) {
+    console.log(data)
   });
 });
 

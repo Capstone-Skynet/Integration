@@ -51,17 +51,18 @@
         <h2>Skynet WebApp </h2>
     </div>
     <div class="left-panel">
-        <p> This is the left-panel </p>
+        <p> This is the left-panel. Potentially used for user setting options i.e. Saving files, changing colours etc. </p>
     </div>
     <div class="center-panel">
-        <p> This is the center-panel </p>
+        <p> This is the center-panel. Most likely used for main video feed </p>
         <img id="main-image" src="" />
+        <img id="py-img" src="" />
     </div>
     <div class="right-panel">
-        <p> This is the right panel</p>
+        <p> This is the right panel. Potentially Used for Control Buttons, Visual Status indicators</p>
     </div>
     <div class="footeh">
-        <p> This is the footer </p>
+        <p> This is the footer. Potentially used for live console-like status updates </p>
         <p id="test1"></p>
     </div>    
 </div>
@@ -70,7 +71,7 @@
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
-  var socket = io.connect('http://localhost');
+  var socket = io.connect('http://localhost:');
   socket.on('news', function (data) {
     socket.emit('my other event', { my: 'data' });
   });
@@ -84,7 +85,13 @@
   // sourced from https://gist.github.com/companje/b95e735650f1cd2e2a41
   var image = document.getElementById('main-image');
   socket.on('imageConversionByServer', function(data) {
-    //image.attr("src",data);
     image.setAttribute('src', data);
   });
+
+  // Python call test
+  var pyimage = document.getElementById('py-img');
+  socket.on('pyimg2webapp', function(data) {
+    pyimage.setAttribute('src', data);
+  });
+
 </script>
