@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="a0b250a1-6691-4602-b5d6-0aeb3dc972a6" name="Default Changelist" comment="" />
+    <list default="true" id="a0b250a1-6691-4602-b5d6-0aeb3dc972a6" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client.py" beforeDir="false" afterPath="$PROJECT_DIR$/client.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -14,7 +18,11 @@
       </list>
     </option>
   </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../../.." />
+  </component>
   <component name="ProjectId" id="1WioPef84mqjhYLos3TPlCp8qAE" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showExcludedFiles" value="true" />
@@ -22,6 +30,7 @@
   </component>
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/client.py" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
@@ -78,22 +87,22 @@
       <screen x="0" y="0" width="2560" height="1040" />
     </state>
     <state x="94" y="182" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.2560.1040@0.0.2560.1040" timestamp="1580968765437" />
-    <state width="1149" height="281" key="GridCell.Tab.0.bottom" timestamp="1580969768698">
+    <state width="2539" height="388" key="GridCell.Tab.0.bottom" timestamp="1580971099905">
       <screen x="0" y="0" width="2560" height="1040" />
     </state>
-    <state width="1149" height="281" key="GridCell.Tab.0.bottom/0.0.2560.1040@0.0.2560.1040" timestamp="1580969768698" />
-    <state width="1149" height="281" key="GridCell.Tab.0.center" timestamp="1580969768697">
+    <state width="2539" height="388" key="GridCell.Tab.0.bottom/0.0.2560.1040@0.0.2560.1040" timestamp="1580971099905" />
+    <state width="2539" height="388" key="GridCell.Tab.0.center" timestamp="1580971099905">
       <screen x="0" y="0" width="2560" height="1040" />
     </state>
-    <state width="1149" height="281" key="GridCell.Tab.0.center/0.0.2560.1040@0.0.2560.1040" timestamp="1580969768697" />
-    <state width="1149" height="281" key="GridCell.Tab.0.left" timestamp="1580969768697">
+    <state width="2539" height="388" key="GridCell.Tab.0.center/0.0.2560.1040@0.0.2560.1040" timestamp="1580971099905" />
+    <state width="2539" height="388" key="GridCell.Tab.0.left" timestamp="1580971099904">
       <screen x="0" y="0" width="2560" height="1040" />
     </state>
-    <state width="1149" height="281" key="GridCell.Tab.0.left/0.0.2560.1040@0.0.2560.1040" timestamp="1580969768697" />
-    <state width="1149" height="281" key="GridCell.Tab.0.right" timestamp="1580969768698">
+    <state width="2539" height="388" key="GridCell.Tab.0.left/0.0.2560.1040@0.0.2560.1040" timestamp="1580971099904" />
+    <state width="2539" height="388" key="GridCell.Tab.0.right" timestamp="1580971099905">
       <screen x="0" y="0" width="2560" height="1040" />
     </state>
-    <state width="1149" height="281" key="GridCell.Tab.0.right/0.0.2560.1040@0.0.2560.1040" timestamp="1580969768697" />
+    <state width="2539" height="388" key="GridCell.Tab.0.right/0.0.2560.1040@0.0.2560.1040" timestamp="1580971099905" />
     <state x="143" y="169" key="SettingsEditor" timestamp="1580968406151">
       <screen x="0" y="0" width="2560" height="1040" />
     </state>
