@@ -1,0 +1,20 @@
+/include/ "system-conf.dtsi"
+/ {
+	reserved-memory {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges;
+
+		reserved: buffer@0x10000000 {
+			 no-map;
+			 reg = <0x10000000 0x10000000>;
+		};
+	};
+
+	reserved-driver@0 {
+		compatible = "xlnx,reserved-memory";
+		memory-region = <&reserved>;
+	};
+	
+};
+
