@@ -13,7 +13,7 @@ int main( int argc, char *argv[])
     unsigned int BETA_BASE = 0x1C25F000;
     unsigned int MEM_BASE  = 0x1C26A000;// 49770*1024*4 = 203857920 = C26A000
 
-	printf("YOLOv2 TEST Begin\n");
+    printf("YOLOv2 TEST Begin\n");
     char **names = get_labels("coco.names");
 	int x;
 	for(x=0;x<80;x++)//80 classe labels
@@ -24,26 +24,16 @@ int main( int argc, char *argv[])
     network *net = load_network("yolov2.cfg", "yolov2.weights", 0);
     set_batch_network(net, 1);
 
-	//load_weights_hls(net, "yolov2.weights", 0, net->n);//write weight to file
 ////////////////////load img resize img begin
-	char buff[256];
+    char buff[256];
     char *input_imgfn = buff;
     if(argc==1)
     {
     	strncpy(input_imgfn, "person.jpg", 256);
-//        printf("WEIGHT_BASE = %d|%x\n",WEIGHT_BASE,WEIGHT_BASE);
-//        printf("BETA_BASE = %d|%x\n",BETA_BASE,BETA_BASE);
-//        printf("MEM_BASE = %d|%x\n",MEM_BASE,MEM_BASE);
     }
     else
     {
     	strncpy(input_imgfn, argv[1], 256);
-//    	WEIGHT_BASE = atoi(argv[2]);
-//        BETA_BASE = atoi(argv[3]);
-//        MEM_BASE  = atoi(argv[4]);
-//        printf("WEIGHT_BASE = %d|%x\n",WEIGHT_BASE,WEIGHT_BASE);
-//        printf("BETA_BASE = %d|%x\n",BETA_BASE,BETA_BASE);
-//        printf("MEM_BASE = %d|%x\n",MEM_BASE,MEM_BASE);
     }
 	printf("Input img:%s\n",input_imgfn);
 	image im = load_image_stb(input_imgfn, 3);//3 channel img
@@ -55,28 +45,27 @@ int main( int argc, char *argv[])
 //	time_t first, second;
 	double time;
 	layer l = net->layers[net->n-1];
-    float *X = sized.data;
-//	first=time(NULL);
-    time = what_time_is_it_now();
-    //network_predict(net, X);
-	yolov2_hls_ps(net, X,WEIGHT_BASE,BETA_BASE,MEM_BASE);
-//	second=time(NULL);
-//	printf("%s: Predicted in %f seconds.\n", input_imgfn, difftime(second,first));
-	printf("Predicted in %f seconds.\n",what_time_is_it_now()-time);
+        float *X = sized.data;
 
-    int nboxes = 0;
-//    float nms=.45;
-	float thresh = .1;
-	float hier_thresh = .1;
-    detection *dets = get_network_boxes(net, im.w, im.h, thresh, hier_thresh, 0, 1, &nboxes);
-    printf("%d\n", nboxes);
-	for(x=0;x<nboxes;x++)
-	{
-		printf("[%3d]:h=%f,w=%f,x=%f,y=%f,objectness=%f\n",x,dets[x].bbox.h,dets[x].bbox.w,dets[x].bbox.x,dets[x].bbox.y,dets[x].objectness);
-	}
+        int i;
+        float nms=.45;
+        float thresh = .1;
+        float hier_thresh = .1;
+        int nboxes = 0;
 
-    printf("DONE2!");
-//    if (nms) do_nms_sort(dets, nboxes, l.classes, nms);
+        detection *dets;
+
+        for (i = 0; i < 5; i++) {
+            time = what_time_is_it_now();
+            yolov2_hls_ps(net, X,WEIGHT_BASE,BETA_BASE,MEM_BASE);
+            printf("Predicted in %f seconds.!\n",what_time_is_it_now()-time);
+
+            dets = get_network_boxes(net, im.w, im.h, thresh, hier_thresh, 0, 1, &nboxes);
+            printf("%d\n", nboxes);
+            if (nms) do_nms_sort(dets, nboxes, l.classes, nms);
+        }
+
+    printf("DONE3!");
     draw_detections(im, dets, nboxes, thresh, names, alphabet, l.classes);
 
     free_detections(dets, nboxes);

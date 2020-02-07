@@ -3429,7 +3429,7 @@ void draw_detections(image im, detection *dets, int num, float thresh, char **na
         char labelstr[4096] = {0};
         int class_t = -1;
         for(j = 0; j < classes; ++j){
-            printf("%s: %.0f%%\n", names[j], dets[i].prob[j]*100);
+            //printf("%s: %.0f%%\n", names[j], dets[i].prob[j]*100);
             if (dets[i].prob[j] > thresh){
                 if (class_t < 0) {
                     strcat(labelstr, names[j]);
@@ -3911,11 +3911,11 @@ void yolov2_hls_ps(network *net, float *input,unsigned int WEIGHT_BASE,unsigned 
 	{
         netp.index = i;
         layer l = netp.layers[i];
-		printf("Layer[%2d]: ",i);
+		//printf("Layer[%2d]: ",i);
 		switch(l.type)
 		{
 			case CONVOLUTIONAL:
-				printf("outputMemory:%8d;BN=%d;Activation=%d;conv  %5d %2d x%2d /%2d  %4d x%4d x%4d   ->  %4d x%4d x%4d  %5.3f BFLOPs\n",l.outputs,l.batch_normalize,l.activation, l.n, l.size, l.size, l.stride, l.w, l.h, l.c, l.out_w, l.out_h, l.out_c, (2.0 * l.n * l.size*l.size*l.c/l.groups * l.out_h*l.out_w)/1000000000.);
+				//printf("outputMemory:%8d;BN=%d;Activation=%d;conv  %5d %2d x%2d /%2d  %4d x%4d x%4d   ->  %4d x%4d x%4d  %5.3f BFLOPs\n",l.outputs,l.batch_normalize,l.activation, l.n, l.size, l.size, l.stride, l.w, l.h, l.c, l.out_w, l.out_h, l.out_c, (2.0 * l.n * l.size*l.size*l.c/l.groups * l.out_h*l.out_w)/1000000000.);
 
 				output_w = (l.w - l.size + 2*l.pad)/l.stride + 1 ;
 				output_h = (l.h - l.size + 2*l.pad)/l.stride + 1 ;
@@ -3946,7 +3946,7 @@ void yolov2_hls_ps(network *net, float *input,unsigned int WEIGHT_BASE,unsigned 
 					INPUTQ,inputQ[offset_index+1],weightQ[offset_index],betaQ[offset_index],
 					WEIGHT_BASE,BETA_BASE);
 				time2 = what_time_is_it_now();
-				printf("Predicted in %f seconds.\n",time2 - time1);
+				//printf("Predicted in %f seconds.\n",time2 - time1);
 				time_sum += (time2 - time1);
 
 				woffset += weight_offset[offset_index];
@@ -3955,7 +3955,7 @@ void yolov2_hls_ps(network *net, float *input,unsigned int WEIGHT_BASE,unsigned 
 
 				break;
 			case MAXPOOL:
-				printf("outputMemory:%8d;max          %d x %d / %d  %4d x%4d x%4d   ->  %4d x%4d x%4d\n",l.outputs, l.size, l.size, l.stride, l.w, l.h, l.c, l.out_w, l.out_h, l.out_c);
+				//printf("outputMemory:%8d;max          %d x %d / %d  %4d x%4d x%4d   ->  %4d x%4d x%4d\n",l.outputs, l.size, l.size, l.stride, l.w, l.h, l.c, l.out_w, l.out_h, l.out_c);
 
 				output_w = l.out_h;
 				output_h = l.out_w;
@@ -3980,12 +3980,12 @@ void yolov2_hls_ps(network *net, float *input,unsigned int WEIGHT_BASE,unsigned 
 					inputQ[offset_index],inputQ[offset_index],INTERWIDTH,INTERWIDTH,
 					WEIGHT_BASE,BETA_BASE);
 				time2 = what_time_is_it_now();
-				printf("Predicted in %f seconds.\n",time2 - time1);
+				//printf("Predicted in %f seconds.\n",time2 - time1);
 				time_sum += (time2 - time1);
 
 				break;
 			case REORG:
-				printf("outputMemory:%8d;reorg              /%2d  %4d x%4d x%4d   ->  %4d x%4d x%4d\n",l.outputs,  l.stride, l.w, l.h, l.c, l.out_w, l.out_h, l.out_c);
+				//printf("outputMemory:%8d;reorg              /%2d  %4d x%4d x%4d   ->  %4d x%4d x%4d\n",l.outputs,  l.stride, l.w, l.h, l.c, l.out_w, l.out_h, l.out_c);
 
 				output_w = 26;
 				output_h = 32*13;
@@ -4008,21 +4008,21 @@ void yolov2_hls_ps(network *net, float *input,unsigned int WEIGHT_BASE,unsigned 
 							  inputQ[offset_index],inputQ[offset_index],INTERWIDTH,INTERWIDTH,
 							  WEIGHT_BASE,BETA_BASE);
 				time2 = what_time_is_it_now();
-				printf("Predicted in %f seconds.\n",time2 - time1);
+				//printf("Predicted in %f seconds.\n",time2 - time1);
 				time_sum += (time2 - time1);
 
 				break;
 			case ROUTE:
-				printf("outputMemory:%8d;route ",l.outputs);
+				//printf("outputMemory:%8d;route ",l.outputs);
 				for(j = 0; j < l.n; ++j){
 					printf(" %d", l.input_layers[j]);
 				}
-				printf("\n");
+				//printf("\n");
 				break;
 			case REGION:
 //				first=time(NULL);
 				time1 = what_time_is_it_now();
-				printf("outputMemory:%8d;Detection\n",l.outputs);
+				//printf("outputMemory:%8d;Detection\n",l.outputs);
 				copy_dev2mem((uint8_t *)region_input_buffer,13*13*432*4/2, in_ptr[i]);
 
 				bool NextPixelFlag = true;
@@ -4052,7 +4052,7 @@ void yolov2_hls_ps(network *net, float *input,unsigned int WEIGHT_BASE,unsigned 
 				forward_region_layer(l,netp);
 
 				time2 = what_time_is_it_now();
-				printf("Predicted in %f seconds.\n",time2 - time1);
+				//printf("Predicted in %f seconds.\n",time2 - time1);
 				time_sum += (time2 - time1);
 
 				break;
@@ -4062,7 +4062,7 @@ void yolov2_hls_ps(network *net, float *input,unsigned int WEIGHT_BASE,unsigned 
 
     }
 
-    printf("TIME_SUM Predicted in %f seconds.\n",time_sum);
+    //printf("TIME_SUM Predicted in %f seconds.\n",time_sum);
 
 	*net = orig;
 
