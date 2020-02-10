@@ -3,7 +3,7 @@ import time
 import picamera
 import numpy as np
 
-host = "localhost"
+host = "192.168.0.101"
 port = 8001
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
