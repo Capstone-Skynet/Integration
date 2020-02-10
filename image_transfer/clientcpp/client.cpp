@@ -13,6 +13,7 @@
 
 int main(int argc, char const *argv[])
 {
+
     int sock = 0, valread = 0;
     struct sockaddr_in serv_addr;
 
@@ -46,16 +47,19 @@ int main(int argc, char const *argv[])
 
     while (true)
     {
-        int n = 0;
-        valread = 0;
-        while (valread < IMAGE_SIZE)
-        {
-            n++;
-            valread += read(sock, buffer + valread, IMAGE_SIZE - valread);
-        }
+        char msg[100];
+        printf("Enter a message :");
+        scanf("%s", msg);
+        printf( "\nYou entered: %s\n ", msg);
+        send(sock, msg, strlen(msg), 0);
 
-        printf("Image received, bytes: %d\n", valread);
-        printf("%d loops\n", n);
+        if (strcmp (msg,"1") == 0) {
+            valread = 0;
+            while (valread < IMAGE_SIZE) {
+                valread += read(sock, buffer + valread, IMAGE_SIZE - valread);
+            }
+            printf("Image received, bytes: %d\n", valread);
+        }
     }
 
     // gettimeofday(&tv, NULL);

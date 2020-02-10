@@ -22,12 +22,17 @@ print("connected")
 #time.sleep(2)
 #img = np.empty((480, 640, 3), dtype=np.uint8)
 
+buffer_size = 10
+
 with picamera.PiCamera() as camera:
     camera.resolution = (640,480)
     time.sleep(2)
     img = np.empty((480, 640, 3), dtype=np.uint8)
+
     while True:
-        camera.capture(img, "rgb")
-        bytearray = img.tobytes()
-        conn.send(bytearray)
-        time.sleep(1)
+        data = s.recv(buffer_size)
+        if (data == "1"):
+            camera.capture(img, "rgb")
+            bytearray = img.tobytes()
+            conn.send(bytearray)
+            time.sleep(1)
