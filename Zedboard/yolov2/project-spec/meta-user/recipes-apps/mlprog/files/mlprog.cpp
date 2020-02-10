@@ -48,14 +48,14 @@ int main( int argc, char *argv[])
         float *X = sized.data;
 
         int i;
-        float nms=.45;
-        float thresh = .1;
-        float hier_thresh = .1;
+        float nms=.2;
+        float thresh = .6;
+        float hier_thresh = .6;
         int nboxes = 0;
 
         detection *dets;
 
-        for (i = 0; i < 5; i++) {
+        for (i = 0; i < 1; i++) {
             time = what_time_is_it_now();
             yolov2_hls_ps(net, X,WEIGHT_BASE,BETA_BASE,MEM_BASE);
             printf("Predicted in %f seconds.!\n",what_time_is_it_now()-time);
