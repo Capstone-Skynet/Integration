@@ -35,4 +35,3 @@ with picamera.PiCamera() as camera:
             camera.capture(img, "rgb")
             bytearray = img.tobytes()
             conn.send(bytearray)
-            time.sleep(1)
