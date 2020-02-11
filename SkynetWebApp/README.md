@@ -1,6 +1,6 @@
 # SkynetWebApp
 
-A node.js server-client webapp for the base station.
+A js server-client webapp for the base station.
 
 ## Packages
 
