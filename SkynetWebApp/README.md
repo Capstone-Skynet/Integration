@@ -23,6 +23,6 @@ Then run the python client
 
     python client.py
 
-And open the webapp in the browser
+And open the webapp in the browser according to your set port (Default 80).
 
-    http://localhost
+    http://localhost:80
