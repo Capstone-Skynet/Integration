@@ -1,7 +1,6 @@
 import socketio
 import base64
 import time
-import keyboard
 
 client = socketio.Client()
 img_prefix = "Images/"
