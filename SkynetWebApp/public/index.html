@@ -86,26 +86,26 @@
 </div>
 <script src="/socket.io/socket.io.js"></script>
 <script>
-var socket = io.connect('http://localhost:');
-socket.on('news', function (data) {
+let socket = io.connect('localhost');
+socket.on('news', (data)=> {
   socket.emit('my other event', { my: 'data' });
 });
 
 // Image Stuff
-var timer = setInterval(imagecall, 400)
+let timer = setInterval(imagecall, 400)
 function imagecall () {
   socket.emit('image_callcheck'); // calls server to check and send next image
 }
 
 // sourced from https://gist.github.com/companje/b95e735650f1cd2e2a41
-var image = document.getElementById('main-image');
-socket.on('imageConversionByServer', function(data) {
+let image = document.getElementById('main-image');
+socket.on('imageConversionByServer', (data)=> {
   image.setAttribute('src', data);
 });
 
 // Python call test
-var pyimage = document.getElementById('py-img');
-socket.on('pyimg2webapp', function(data) {
+let pyimage = document.getElementById('py-img');
+socket.on('pyimg2webapp', (data)=> {
   pyimage.setAttribute('src', data);
 });
 </script>
