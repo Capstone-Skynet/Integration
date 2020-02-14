@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>UBC Capstone 2019 Team 109</title>
+<meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="description" content="Capstone Skynet Base Station Client"/>
+<meta name="author" content="UBC Capstone team 109"/>
+
+<!-- <link rel="icon" href="favicon.ico" type="image/x-icon"> -->
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha256-pasqAKBDmFT4eHoN2ndd6lN370kFiGUFyTiUHWhU7k8=" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+<style>
+
+</style>
+
+</head>
+<body>
+
+<!-- Nav bar -->
+<nav class="navbar sticky-top navbar-expand-md navbar-light bg-light">
+	<div class="container-fluid">
+		<a href="/" class="navbar-brand">
+			<!-- <img src="/docs/assets/capstonelogo1.svg" width="30" height="30" class="d-inline-block align-top" alt=""> -->
+			Capstone Skynet Base Station
+		</a>
+		<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+		<div class="collapse navbar-collapse" id="navbarSupportedContent">
+			<ul class='navbar-nav mr-auto'>
+				<li class='nav-item mx-2 active'><a class="nav-link py-1" href="#">Main<span class="sr-only">(current)</span></a></li>
+			</ul>
+		</div>
+	</div>
+</nav>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-3">
+            <h3>Left Panel</h3>
+            <p>Potentially used for user setting options i.e. Saving files, changing colours etc.</p>
+        </div>
+
+        <div class="col-6">
+            <h3>Center Panel</h3>
+            <p> This is the center-panel. Most likely used for main video feed </p>
+            <img id="main-image" src="" />
+            <img id="py-img" src="" />
+        </div>
+
+        <div class="col-3">
+            <h3>Right Panel</h3>
+            <p> This is the right panel</p> <br>
+            <p> Potentially Used for Control Buttons, Visual Status indicators </p>
+            <table>
+            <tr>
+                <th>Buttons</th>
+                <th>Radio Buttons</th>
+            </tr>
+            <tr>
+                <td> 
+                <input type="button" value="Option1" width="10"> <br>
+                <input type="button" value="Option2" width="10"> <br>
+                <input type="button" value="Option3" width="10"> <br>
+                <input type="button" value="Option4" width="10"> <br>
+                </td>
+                <td>
+                <input type="radio" name="rb1" value="Option1" checked> Option1 <br>
+                <input type="radio" name="rb2" value="Option2" > Option2 <br>
+                <input type="radio" name="rb3" value="Option3" > Option3 <br>
+                <input type="button" value="Submit Options" width="10">
+                </td>
+            </tr>
+            </table>
+        </div>
+
+        <div class="col-12">
+            <p> This is the footer. Potentially used for live console-like status updates </p>
+            <textarea rows = "5" cols = "100" name = "status_box" readonly>
+                Status Messages should be here . . . 
+            </textarea>
+        </div>
+    </div>
+</div>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+var socket = io.connect('http://localhost:');
+socket.on('news', function (data) {
+  socket.emit('my other event', { my: 'data' });
+});
+
+// Image Stuff
+var timer = setInterval(imagecall, 400)
+function imagecall () {
+  socket.emit('image_callcheck'); // calls server to check and send next image
+}
+
+// sourced from https://gist.github.com/companje/b95e735650f1cd2e2a41
+var image = document.getElementById('main-image');
+socket.on('imageConversionByServer', function(data) {
+  image.setAttribute('src', data);
+});
+
+// Python call test
+var pyimage = document.getElementById('py-img');
+socket.on('pyimg2webapp', function(data) {
+  pyimage.setAttribute('src', data);
+});
+</script>
+</body>
+</html>
