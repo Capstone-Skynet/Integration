@@ -16,10 +16,22 @@
 <style>
 :root {
 	--text-color: #000;
-	--bg-color: transparent;
+    --bg-color: transparent;
+    --nav-bg-color: #f8f9fa;
 	--link-color: #0050C9;
 	--link-hover-color: #A92626;
 }
+/* Dark mode colors */
+@media (prefers-color-scheme: dark) {
+	:root {
+		--bg-color: #000;
+        --text-color: #eee;
+        --nav-bg-color: #111;
+		--link-color: rgb(74, 125, 201);
+		--link-hover-color: rgb(199, 91, 91);
+    }
+}
+
 html { font-size: 16px; }
 body {
     font-family: sans-serif;
@@ -28,6 +40,12 @@ body {
 	color: var(--text-color);
 	background-color: var(--bg-color);
 }
+li.nav-item.active a { border-bottom: 2px solid var(--text-color); }
+li.nav-item { color: var(--text-color); }
+.navbar-brand { font-weight: bold; padding: 0; color: var(--text-color); }
+.navbar-brand:hover { color: var(--text-color); }
+.navbar-mh .navbar-nav .nav-link { color: var(--text-color);}
+.navbar-mh { border-bottom: 1px solid #666; }
 
 /* Make footer more spacious */
 footer { margin: 2em 0; }
@@ -61,22 +79,7 @@ a:hover { color: var(--link-hover-color); }
 
 ::selection { background: #4488ff44; }
 
-/* Dark mode CSS */
-@media (prefers-color-scheme: dark) {
-	:root {
-		--bg-color: #000;
-		--text-color: #eee;
-		--link-color: rgb(74, 125, 201);
-		--link-hover-color: rgb(199, 91, 91);
-    }
-}
-
 /* -------- */
-
-.ui-panel {
-    border: 1px solid var(--text-color);
-    padding: 2px;
-}
 
 img.main-img { height: 200px; width: 300px; border: 1px solid greenyellow; }
 
@@ -86,7 +89,7 @@ img.main-img { height: 200px; width: 300px; border: 1px solid greenyellow; }
 <body>
 
 <!-- Nav bar -->
-<nav class="navbar sticky-top navbar-expand-md navbar-light bg-light">
+<nav class="navbar sticky-top navbar-expand-md navbar-mh">
 	<div class="container-fluid">
 		<a href="/" class="navbar-brand">
 			<!-- <img src="/docs/assets/capstonelogo1.svg" width="30" height="30" class="d-inline-block align-top" alt=""> -->
@@ -95,7 +98,7 @@ img.main-img { height: 200px; width: 300px; border: 1px solid greenyellow; }
 		<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
 		<div class="collapse navbar-collapse" id="navbarSupportedContent">
 			<ul class='navbar-nav mr-auto'>
-				<li class='nav-item mx-2 active'><a class="nav-link py-1" href="#">Main<span class="sr-only">(current)</span></a></li>
+				<li class='nav-item mx-2 active'><a class="nav-link py-1" href="#">Overview<span class="sr-only">(current)</span></a></li>
 			</ul>
 		</div>
 	</div>
@@ -103,12 +106,12 @@ img.main-img { height: 200px; width: 300px; border: 1px solid greenyellow; }
 
 <div class="container-fluid">
     <div class="row">
-        <div class="col-md-3 mt-3">
+        <!-- <div class="col-md-3 mt-3">
             <h3>Left Panel</h3>
             <p>Potentially used for user setting options i.e. Saving files, changing colours etc.</p>
-        </div>
+        </div> -->
 
-        <div class="col-md-6 mt-3">
+        <div class="col-md-9 mt-3">
             <h3>Center Panel</h3>
             <p> This is the center-panel. Most likely used for main video feed </p>
             <img class="main-img" id="main-image" src=""/>
