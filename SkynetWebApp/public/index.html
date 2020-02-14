@@ -14,6 +14,71 @@
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 
 <style>
+:root {
+	--text-color: #000;
+	--bg-color: transparent;
+	--link-color: #0050C9;
+	--link-hover-color: #A92626;
+}
+html { font-size: 16px; }
+body {
+    font-family: sans-serif;
+    cursor: default;
+	line-height: 1.5;
+	color: var(--text-color);
+	background-color: var(--bg-color);
+}
+
+/* Make footer more spacious */
+footer { margin: 2em 0; }
+
+/* Paragraph vertical spacing */
+p { margin: .5em 0; }
+
+/* Increase anchor color contrast */
+a { color: var(--link-color); }
+a:hover { color: var(--link-hover-color); }
+
+.btn { position:relative; overflow: hidden; transform: translate3d(0,0,0); }
+.btn::after {
+	content: "";
+	display: block;
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	top: 0;
+	left: 0;
+	pointer-events: none;
+	background-image: radial-gradient(circle,#000 10%,transparent 10.01%);
+	background-repeat: no-repeat;
+	background-position: 50%;
+	transform: scale(10,10);
+	opacity: 0;
+	transition: ease-out transform .5s, opacity .5s;
+}
+.btn:active::after { transform: scale(0,0); opacity: 0.2; transition: 0s; }
+.btn-xs { padding: 0 .25em; font-size: 0.9em; }
+
+::selection { background: #4488ff44; }
+
+/* Dark mode CSS */
+@media (prefers-color-scheme: dark) {
+	:root {
+		--bg-color: #000;
+		--text-color: #eee;
+		--link-color: rgb(74, 125, 201);
+		--link-hover-color: rgb(199, 91, 91);
+    }
+}
+
+/* -------- */
+
+.ui-panel {
+    border: 1px solid var(--text-color);
+    padding: 2px;
+}
+
+img.main-img { height: 200px;}
 
 </style>
 
@@ -38,19 +103,19 @@
 
 <div class="container-fluid">
     <div class="row">
-        <div class="col-3">
+        <div class="col-3 mt-3">
             <h3>Left Panel</h3>
             <p>Potentially used for user setting options i.e. Saving files, changing colours etc.</p>
         </div>
 
-        <div class="col-6">
+        <div class="col-6 mt-3">
             <h3>Center Panel</h3>
             <p> This is the center-panel. Most likely used for main video feed </p>
-            <img id="main-image" src="" />
-            <img id="py-img" src="" />
+            <img class="main-img" id="main-image" src=""/>
+            <img class="main-img" id="py-img" src="" />
         </div>
 
-        <div class="col-3">
+        <div class="col-3 mt-3">
             <h3>Right Panel</h3>
             <p> This is the right panel</p> <br>
             <p> Potentially Used for Control Buttons, Visual Status indicators </p>
@@ -76,7 +141,7 @@
             </table>
         </div>
 
-        <div class="col-12">
+        <div class="col-12 mt-3">
             <p> This is the footer. Potentially used for live console-like status updates </p>
             <textarea rows = "5" cols = "100" name = "status_box" readonly>
                 Status Messages should be here . . . 
