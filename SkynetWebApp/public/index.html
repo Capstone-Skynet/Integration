@@ -78,7 +78,7 @@ a:hover { color: var(--link-hover-color); }
     padding: 2px;
 }
 
-img.main-img { height: 200px;}
+img.main-img { height: 200px; width: 300px; border: 1px solid greenyellow; }
 
 </style>
 
@@ -103,19 +103,19 @@ img.main-img { height: 200px;}
 
 <div class="container-fluid">
     <div class="row">
-        <div class="col-3 mt-3">
+        <div class="col-md-3 mt-3">
             <h3>Left Panel</h3>
             <p>Potentially used for user setting options i.e. Saving files, changing colours etc.</p>
         </div>
 
-        <div class="col-6 mt-3">
+        <div class="col-md-6 mt-3">
             <h3>Center Panel</h3>
             <p> This is the center-panel. Most likely used for main video feed </p>
             <img class="main-img" id="main-image" src=""/>
             <img class="main-img" id="py-img" src="" />
         </div>
 
-        <div class="col-3 mt-3">
+        <div class="col-md-3 mt-3">
             <h3>Right Panel</h3>
             <p> This is the right panel</p> <br>
             <p> Potentially Used for Control Buttons, Visual Status indicators </p>
