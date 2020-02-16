@@ -19,7 +19,7 @@ CONNECTION_URL = 'http://localhost:80'
 def setup_socket():
     client = socketio.Client()
 
-    while client.connected:
+    while not client.connected:
         try:
             client.connect(CONNECTION_URL)
         except socketio.exceptions.ConnectionError as e:
@@ -50,17 +50,22 @@ def setup_socket():
 
 def main():
     client = setup_socket()
-
     cap = cv2.VideoCapture(0)
 
-    while(True):
+    while True:
         # Capture frame-by-frame
-        ret, frame = cap.read()
+        _, frame = cap.read()
 
         # Display the resulting frame
-        cv2.imshow('frame',frame)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+        # cv2.imshow('frame',frame)
+        # if cv2.waitKey(1) & 0xFF == ord('q'):
+        #     break
+        _, buffer = cv2.imencode('.jpg', frame)
+        frame_data = str(base64.b64encode(buffer))
+        # client.emit('py_img_receive', frame_data[2:len(frame_data) - 1])
+        client.emit('py_img_receive', frame_data[2:len(frame_data) - 1])
+        time.sleep(0.4)
+
 
     # When everything done, release the capture
     cap.release()
