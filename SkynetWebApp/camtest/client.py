@@ -51,6 +51,8 @@ def setup_socket():
 def main():
     client = setup_socket()
     cap = cv2.VideoCapture(0)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 300);
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 200);
 
     while True:
         # Capture frame-by-frame
@@ -62,9 +64,8 @@ def main():
         #     break
         _, buffer = cv2.imencode('.jpg', frame)
         frame_data = str(base64.b64encode(buffer))
-        # client.emit('py_img_receive', frame_data[2:len(frame_data) - 1])
         client.emit('py_img_receive', frame_data[2:len(frame_data) - 1])
-        time.sleep(0.4)
+        # time.sleep(0.4)
 
 
     # When everything done, release the capture
