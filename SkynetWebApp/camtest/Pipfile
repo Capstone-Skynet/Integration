@@ -7,10 +7,10 @@ verify_ssl = true
 pylint = "*"
 
 [packages]
-opencv-python = "*"
 numpy = "*"
 python-socketio = "*"
 requests = "*"
+opencv-python = "<=4.1.0.25"
 
 [requires]
 python_version = "3.7"

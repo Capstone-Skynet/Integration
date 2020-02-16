@@ -1,3 +1,4 @@
 {
-    "python.pythonPath": "/Users/muchenhe/.local/share/virtualenvs/camtest-Lg4gzs41/bin/python"
+    "python.pythonPath": "/Users/muchenhe/.local/share/virtualenvs/camtest-Lg4gzs41/bin/python",
+    "python.linting.enabled": false
 }
