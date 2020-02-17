@@ -11,10 +11,16 @@ import threading
 arg_parser = argparse.ArgumentParser(description="Camera test program to connect to Skynet Webapp via socket.io")
 arg_parser.add_argument('--reconnect', help='Keep trying to reconnect to socket server even when connection refuses', action='store_true')
 arg_parser.add_argument('--reconnect-freq', help='The frequency to attempt reconnecting to socket IO server', default=3)
+arg_parser.add_argument('--cam-res-scale', help='Magnitude of the scale of the camera input images (default 0.1)', default=0.1)
 args = arg_parser.parse_args()
 
 # SETUP: Socket IO connections
 CONNECTION_URL = 'http://localhost:80'
+
+# SETUP: Camera
+CAMERA_RESOLUTION_WIDTH = 1280
+CAMERA_RESOLUTION_HEIGHT = 1024
+CAMERA_RESOLUTION_SCALE = float(args.cam_res_scale)
 
 def setup_socket():
     client = socketio.Client()
@@ -36,8 +42,9 @@ def setup_socket():
 def main():
     client = setup_socket()
     cap = cv2.VideoCapture(0)
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 300);
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 200);
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, int(CAMERA_RESOLUTION_SCALE * CAMERA_RESOLUTION_WIDTH))
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, int(CAMERA_RESOLUTION_SCALE * CAMERA_RESOLUTION_HEIGHT))
+    print(f'Setting camera resolution to {cap.get(cv2.CAP_PROP_FRAME_WIDTH)}, {cap.get(cv2.CAP_PROP_FRAME_HEIGHT)}')
 
     while True:
         # Capture frame-by-frame
