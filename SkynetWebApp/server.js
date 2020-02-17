@@ -1,12 +1,13 @@
-var app = require('express')();
-var server = require('http').Server(app);
-var io = require('socket.io')(server);
-var fs = require ('fs');
+let app = require('express')();
+let server = require('http').Server(app);
+let io = require('socket.io')(server);
 
-var port = 80
+// var fs = require('fs');
 
-server.listen(port, function() {
-  console.log('Listening on port: ' + port)
+const LOCALHOST_PORT = 80;
+
+server.listen(LOCALHOST_PORT, () => {
+  console.log('Listening on port: ' + LOCALHOST_PORT);
 })
 // WARNING: app.listen(80) will NOT work here!
 
@@ -14,29 +15,12 @@ app.get('/', function (req, res) {
   res.sendFile(__dirname + '/public/index.html');
 });
 
-io.on('connection', function (socket) {
-  // socket.emit('news', { hello: 'world' });
-  // socket.on('my other event', function (data) {
-  //   //socket.emit('pyimg2webapp', "wtf");
-  //   console.log(data);
-  // });
- 
-  // image sending sourced from https://gist.github.com/companje/b95e735650f1cd2e2a41
-  // var i = 1;
-  // socket.on('image_callcheck', function () {
-  //   var f_name = __dirname + '/Images/' + i.toString() + '.jpg'; 
-  //   fs.readFile(f_name, function(err, data){
-  //     socket.emit('imageConversionByServer', "data:image/png;base64,"+ data.toString("base64"));
-  //   });
-  //   if (i == 10) 
-  //     i = 1;
-  //   else
-  //     i++;
-  // });
+io.on('connection', (socket) => {
+  // Set up connections when socket connects
 
-  // Calling the python script to receive image.
-  socket.on('IMGDATA', function(data) {
-    socket.broadcast.emit('pyimg2webapp', "data:image/png;base64," + data.toString());
+  // Receiving data from Python program
+  socket.on('PY_IMG_DATA', (imageData) => {
+    socket.broadcast.emit('SRV_IMG_DATA', 'data:image/png;base64,' + imageData.toString());
   });
 });
 

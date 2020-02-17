@@ -16,7 +16,7 @@ args = arg_parser.parse_args()
 
 # SETUP: Socket IO connections
 CONNECTION_URL = 'http://localhost:80'
-SIGNAL_SEND_DATA = 'IMGDATA'
+SIGNAL_SEND_DATA = 'PY_IMG_DATA'
 
 # SETUP: Camera
 CAMERA_RESOLUTION_WIDTH = 1280
