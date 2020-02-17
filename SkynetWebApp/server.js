@@ -13,7 +13,7 @@ io.on('connection', (socket) => {
 
   // Receiving data from Python program
   socket.on('PY_IMG_DATA', (imageData) => {
-    socket.broadcast.emit('SRV_IMG_DATA', 'data:image/png;base64,' + imageData.toString());
+    socket.broadcast.emit('SRV_IMG_DATA', imageData);
   });
 });
 

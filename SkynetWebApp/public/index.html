@@ -12,6 +12,7 @@
 <link rel="stylesheet" href="css/bootstrap.min.css">
 <script src="js/jquery-3.4.1.min.js"></script>
 <script src="js/bootstrap.bundle.js"></script>
+<script src="js/p5.min.js"></script>
 
 <!-- NPM js -->
 <script src="/socket.io/socket.io.js"></script>
@@ -84,7 +85,8 @@ a:hover { color: var(--link-hover-color); }
 
 /* -------- */
 
-#draw-canvas {
+/* #draw-canvas, #py-img, canvas { */
+canvas {
     border: 1px solid greenyellow;
     resize: both;
     min-width: 300px;
@@ -128,7 +130,8 @@ a:hover { color: var(--link-hover-color); }
             <h3>Center Panel</h3>
             <p> This is the center-panel. Most likely used for main video feed</p>
             <div id="draw-container">
-                <canvas id="draw-canvas"></canvas>
+                <!-- <img id="py-img"/>
+                <canvas id="draw-canvas"></canvas> -->
             </div>
         </div>
 
@@ -171,15 +174,46 @@ a:hover { color: var(--link-hover-color); }
 <script>
 let socket = io.connect('localhost');
 
-let pyimage = document.getElementById('py-img');
+// let pyimage = document.getElementById('py-img');
+// 
+// let canvas = document.getElementById('draw-canvas');
+// let ctx = canvas.getContext('2d');
 
-let canvas = doucment.getElementById('draw-canvas');
-let ctx = canvas.getContext('2d');
+let receivedData = null;
+
+function setup() {
+    let canvas = createCanvas(600, 400);
+    canvas.parent('draw-container');
+    frameRate(15);
+    textSize(32);
+}
+
+function draw() {
+    if (receivedData !== null) {
+        loadImage(receivedData, img => {
+            image(img, 0, 0);
+
+            stroke(0);
+            fill(255);
+            text("Live", 10, 40);
+        });
+    } else {
+        stroke(255, 0, 0);
+        line(0, 0, width, height);
+        line(width, 0, 0, height);
+    }
+}
 
 // Socket handler for when we are 
 // FIXME: Everytime a new frame is sent; previous frame is still stored in memory (Bad)
+// let img = new Image();
 socket.on('SRV_IMG_DATA', (data)=> {
-  pyimage.setAttribute('src', data);
+    // pyimage.setAttribute('src', 'data:image/png;base64,' + data.toString());
+    // img.src = 'data:image/jpeg;base64,' + data.toString();
+    // ctx.drawImage(img, 0, 0);
+    // console.log('hi');
+
+    receivedData = 'data:image/jpeg;base64,' + data.toString();
 });
 </script>
 </body>
