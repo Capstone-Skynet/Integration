@@ -1,22 +1,12 @@
 // Use Express as app, then set resources directory (static files)
 let express = require('express');
 let app = express();
-app.use(express.static(__dirname + 'public'))
-
-// Set app to map root to index.html
-app.get('/', function (req, res) {
-  res.sendFile(__dirname + '/public/index.html');
-});
+app.use(express.static('public'))
 
 // Http server and socket io
-let server = require('http').Server(app);
+const SERVERPORT = 80;
+let server = app.listen(SERVERPORT);
 let io = require('socket.io')(server);
-
-// Http server set up connection
-const LOCALHOST_PORT = 80;
-server.listen(LOCALHOST_PORT, () => {
-  console.log('Listening on port: ' + LOCALHOST_PORT);
-})
 
 // Set up connections when socket connects
 io.on('connection', (socket) => {
