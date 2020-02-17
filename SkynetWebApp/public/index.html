@@ -13,6 +13,10 @@
 <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha256-pasqAKBDmFT4eHoN2ndd6lN370kFiGUFyTiUHWhU7k8=" crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 
+<!-- JS -->
+<script src="/socket.io/socket.io.js"></script>
+<!-- <script src="/bootstrap4-toggle/bootstrap4-toggle.min.js"></script> -->
+
 <style>
 :root {
 	--text-color: #000;
@@ -114,7 +118,8 @@ img.main-img { height: 200px; width: 300px; border: 1px solid greenyellow; }
         <div class="col-md-9 mt-3">
             <h3>Center Panel</h3>
             <p> This is the center-panel. Most likely used for main video feed </p>
-            <img class="main-img" id="main-image" src=""/>
+            <!-- <input type="checkbox" checked data-toggle="toggle" data-on="Ready" data-off="Not Ready" data-onstyle="success" data-offstyle="danger"> -->
+            <!-- <img class="main-img" id="main-image" src=""/> -->
             <img class="main-img" id="py-img" src="" />
         </div>
 
@@ -152,24 +157,23 @@ img.main-img { height: 200px; width: 300px; border: 1px solid greenyellow; }
         </div>
     </div>
 </div>
-<script src="/socket.io/socket.io.js"></script>
 <script>
 let socket = io.connect('localhost');
-socket.on('news', (data)=> {
-  socket.emit('my other event', { my: 'data' });
-});
+// socket.on('news', (data)=> {
+//   socket.emit('my other event', { my: 'data' });
+// });
 
 // Image Stuff
-let timer = setInterval(imagecall, 400)
-function imagecall () {
-  socket.emit('image_callcheck'); // calls server to check and send next image
-}
+// let timer = setInterval(imagecall, 400)
+// function imagecall () {
+//   socket.emit('image_callcheck'); // calls server to check and send next image
+// }
 
 // sourced from https://gist.github.com/companje/b95e735650f1cd2e2a41
-let image = document.getElementById('main-image');
-socket.on('imageConversionByServer', (data)=> {
-  image.setAttribute('src', data);
-});
+// let image = document.getElementById('main-image');
+// socket.on('imageConversionByServer', (data)=> {
+//   image.setAttribute('src', data);
+// });
 
 // Python call test
 let pyimage = document.getElementById('py-img');

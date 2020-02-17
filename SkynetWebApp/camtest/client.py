@@ -16,6 +16,7 @@ args = arg_parser.parse_args()
 
 # SETUP: Socket IO connections
 CONNECTION_URL = 'http://localhost:80'
+SIGNAL_SEND_DATA = 'IMGDATA'
 
 # SETUP: Camera
 CAMERA_RESOLUTION_WIDTH = 1280
@@ -53,7 +54,7 @@ def main():
         # Display the resulting frame
         _, buffer = cv2.imencode('.jpg', frame)
         frame_data = str(base64.b64encode(buffer))
-        client.emit('py_img_receive', frame_data[2:len(frame_data) - 1])
+        client.emit(SIGNAL_SEND_DATA, frame_data[2:len(frame_data) - 1])
 
     # When everything done, release the capture
     cap.release()
