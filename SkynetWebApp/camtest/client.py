@@ -33,21 +33,6 @@ def setup_socket():
 
     return client
 
-# @client.event
-# def connect():
-#     print('Connected to ', CONNECTION_URL)
-
-# @client.event
-# def connect_error():
-#     print('Error, could not connect to ', CONNECTION_URL)
-
-# @client.event
-# def disconnect():
-#     print('Disconnected from ', CONNECTION_URL)
-
-# print ('my sid is ', client.sid)
-# client.emit('pytest', 'pytest sent')
-
 def main():
     client = setup_socket()
     cap = cv2.VideoCapture(0)
@@ -59,14 +44,9 @@ def main():
         _, frame = cap.read()
 
         # Display the resulting frame
-        # cv2.imshow('frame',frame)
-        # if cv2.waitKey(1) & 0xFF == ord('q'):
-        #     break
         _, buffer = cv2.imencode('.jpg', frame)
         frame_data = str(base64.b64encode(buffer))
         client.emit('py_img_receive', frame_data[2:len(frame_data) - 1])
-        # time.sleep(0.4)
-
 
     # When everything done, release the capture
     cap.release()
@@ -77,17 +57,3 @@ if __name__ == '__main__':
         main()
     except KeyboardInterrupt:
         print('Program Terminated.')
-
-# while 1:
-#     filepath = img_prefix + str(data) + png
-#     with open(filepath, 'rb') as imageFile:
-#         image_data = base64.b64encode(imageFile.read())
-#         img_string = str(image_data)
-#         length = len(img_string)
-#         client.emit('py_img_receive', img_string[2:length-1] )
-#     time.sleep(0.4)
-#     #print('Image sent') 
-#     if (data == 10):
-#         data = 1 
-#     else:
-#         data += 1
