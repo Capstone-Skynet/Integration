@@ -84,7 +84,7 @@ a:hover { color: var(--link-hover-color); }
 
 /* -------- */
 
-img.camera-img {
+#draw-canvas {
     border: 1px solid greenyellow;
     resize: both;
     min-width: 300px;
@@ -128,7 +128,7 @@ img.camera-img {
             <h3>Center Panel</h3>
             <p> This is the center-panel. Most likely used for main video feed</p>
             <div id="draw-container">
-                <img class="camera-img" id="py-img" src=""/>
+                <canvas id="draw-canvas"></canvas>
             </div>
         </div>
 
@@ -173,12 +173,14 @@ let socket = io.connect('localhost');
 
 let pyimage = document.getElementById('py-img');
 
+let canvas = doucment.getElementById('draw-canvas');
+let ctx = canvas.getContext('2d');
+
 // Socket handler for when we are 
 // FIXME: Everytime a new frame is sent; previous frame is still stored in memory (Bad)
 socket.on('SRV_IMG_DATA', (data)=> {
   pyimage.setAttribute('src', data);
 });
-
 </script>
 </body>
 </html>
