@@ -3512,7 +3512,6 @@ void extract_detections(int * sendData, image im, detection *dets, int num, floa
             sendDataIter[10] = b.x * 416;
             sendDataIter[11] = b.y * 416;
 
-            printf("Detection[9]: %d, str: %.*s", sendDataIter[8], sendDataIter);
             sendDataIter += 12;
 
             //Update number classfied

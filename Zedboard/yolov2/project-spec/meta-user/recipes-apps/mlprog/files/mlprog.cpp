@@ -80,45 +80,39 @@ int main( int argc, char *argv[])
     network *net = load_network("yolov2.cfg", "yolov2.weights", 0);
     set_batch_network(net, 1);
 
-    fetchImage(sock, sized);
+    while(1) {
+        fetchImage(sock, sized);
 
-    double time;
-    layer l = net->layers[net->n-1];
-    float *X = sized.data;
+        double time;
+        layer l = net->layers[net->n-1];
+        float *X = sized.data;
 
-    int i;
-    float nms=.2;
-    float thresh = .6;
-    float hier_thresh = .6;
-    int nboxes = 0;
+        int i;
+        float nms=.2;
+        float thresh = .6;
+        float hier_thresh = .6;
+        int nboxes = 0;
 
-    detection *dets;
+        detection *dets;
 
-    time = what_time_is_it_now();
-    yolov2_hls_ps(net, X,WEIGHT_BASE,BETA_BASE,MEM_BASE);
-    printf("Predicted in %f seconds.!\n",what_time_is_it_now()-time);
+        time = what_time_is_it_now();
+        yolov2_hls_ps(net, X,WEIGHT_BASE,BETA_BASE,MEM_BASE);
+        printf("Predicted in %f seconds.!\n",what_time_is_it_now()-time);
 
-    dets = get_network_boxes(net, sized.w, sized.h, thresh, hier_thresh, 0, 1, &nboxes);
-    if (nms) do_nms_sort(dets, nboxes, l.classes, nms);
+        dets = get_network_boxes(net, sized.w, sized.h, thresh, hier_thresh, 0, 1, &nboxes);
+        if (nms) do_nms_sort(dets, nboxes, l.classes, nms);
 
-    int sizeofSendData = 4 + 48*nboxes;
-    int * sendData = (int *) calloc(sizeofSendData, sizeof(char));
+        int sizeofSendData = 4 + 48*nboxes;
+        int * sendData = (int *) calloc(sizeofSendData, sizeof(char));
 
-    extract_detections(sendData, sized, dets, nboxes, thresh, names, l.classes);
-    draw_detections(sized, dets, nboxes, thresh, names, alphabet, l.classes);
+        extract_detections(sendData, sized, dets, nboxes, thresh, names, l.classes);
 
-    send(sock, sendData, 4 + 48*sendData[0], 0);
+        send(sock, sendData, 4 + 48*sendData[0], 0);
 
-    printf("Detection[9]: %d", sendData[9]);
+        free_detections(dets, nboxes);
+        free(sendData);
+    }
 
-    free_detections(dets, nboxes);
-	
-///////////////////write predictions img
-    //save_image_png(sized, "predictions");// output
-    
     free_image(sized);
-
-    printf("YOLOv2 TEST1 End\n");
-
     return 0;
 }
