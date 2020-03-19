@@ -30,7 +30,6 @@ void fetchImage(int socket, image img)
 
         bytesRead += result;
     }
-
 }
     
 
@@ -95,23 +94,27 @@ int main( int argc, char *argv[])
 
     detection *dets;
 
-    for (i = 0; i < 1; i++) {
-        time = what_time_is_it_now();
-        yolov2_hls_ps(net, X,WEIGHT_BASE,BETA_BASE,MEM_BASE);
-        printf("Predicted in %f seconds.!\n",what_time_is_it_now()-time);
+    time = what_time_is_it_now();
+    yolov2_hls_ps(net, X,WEIGHT_BASE,BETA_BASE,MEM_BASE);
+    printf("Predicted in %f seconds.!\n",what_time_is_it_now()-time);
 
-        dets = get_network_boxes(net, sized.w, sized.h, thresh, hier_thresh, 0, 1, &nboxes);
-        printf("%d\n", nboxes);
-        if (nms) do_nms_sort(dets, nboxes, l.classes, nms);
-    }
+    dets = get_network_boxes(net, sized.w, sized.h, thresh, hier_thresh, 0, 1, &nboxes);
+    if (nms) do_nms_sort(dets, nboxes, l.classes, nms);
 
-    printf("DONE3!");
+    int sizeofSendData = 4 + 48*nboxes;
+    int * sendData = (int *) calloc(sizeofSendData, sizeof(char));
+
+    extract_detections(sendData, sized, dets, nboxes, thresh, names, l.classes);
     draw_detections(sized, dets, nboxes, thresh, names, alphabet, l.classes);
+
+    send(sock, sendData, 4 + 48*sendData[0], 0);
+
+    printf("Detection[9]: %d", sendData[9]);
 
     free_detections(dets, nboxes);
 	
 ///////////////////write predictions img
-    save_image_png(sized, "predictions");// output
+    //save_image_png(sized, "predictions");// output
     
     free_image(sized);
 
