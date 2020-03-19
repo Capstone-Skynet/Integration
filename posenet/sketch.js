@@ -83,18 +83,18 @@ function draw() {
   // scale(s);
   
   // first get the midpoint between eyes and fix it to the middle of the screen
-  let mx = 0.5 * (pose.leftEye.x + pose.rightEye.x);
-  let my = 0.5 * (pose.leftEye.y + pose.rightEye.y);
-  translate(width/2 - mx * s, height/2 - my * s);
+  // let mx = 0.5 * (pose.leftEye.x + pose.rightEye.x);
+  // let my = 0.5 * (pose.leftEye.y + pose.rightEye.y);
+  // translate(width/2 - mx * s, height/2 - my * s);
   
   // next, get the rotation of eyes
-  let dangle = atan2(pose.leftEye.y - pose.rightEye.y, pose.leftEye.x, pose.rightEye.x);
-  rotate(dangle);
+  // let dangle = atan2(pose.leftEye.y - pose.rightEye.y, pose.leftEye.x, pose.rightEye.x);
+  // rotate(dangle);
   // console.log(dd);
   
   image(video, 0, 0);
   
   pop();
   
-  // drawSkele(pose);
+  drawSkele(pose);
 }

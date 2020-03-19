@@ -1,6 +1,17 @@
 # SkynetWebApp
 
-A node.js server-client webapp for the base station.
+A js server-client webapp for the base station.
+
+## Packages
+
+The `server.js` requires express and socket.io.
+
+    npm install express
+    npm install --save socket.io
+
+The `client.py` requires the socket.io client library
+
+    pip install "python-socketio[client]"
 
 ## Usage
 
@@ -12,6 +23,6 @@ Then run the python client
 
     python client.py
 
-And open the webapp in the browser
+And open the webapp in the browser according to your set port (Default 80).
 
-    http://localhost
+    http://localhost:80

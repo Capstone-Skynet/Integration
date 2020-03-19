@@ -1,0 +1,5 @@
+Requires RasPiCam:
+https://github.com/cedricve/raspicam
+
+Compile with:
+g++ ml_server.cpp -o ml_server -I/usr/local/include -lraspicam
