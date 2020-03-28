@@ -3,3 +3,9 @@ https://github.com/cedricve/raspicam
 
 Compile with:
 g++ ml_server.cpp -o ml_server -I/usr/local/include -lraspicam
+
+Code that is respnsible for communication with python program is wrapped around by 
+// GSC - START/END
+
+Set ENABLE_ML to enable machine learning.
+(When disabled, this server will send randomly generated pseudo result to client)

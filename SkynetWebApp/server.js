@@ -11,9 +11,14 @@ let io = require('socket.io')(server);
 // Set up connections when socket connects
 io.on('connection', (socket) => {
 
-  // Receiving data from Python program
+  // Receiving image from Python program
   socket.on('PY_IMG_DATA', (imageData) => {
     socket.broadcast.emit('SRV_IMG_DATA', imageData);
+  });
+
+  // Receiving ml result from Python program
+  socket.on('PY_ML_RESULT', (result) => {
+    console.log(result);
   });
 });
 
