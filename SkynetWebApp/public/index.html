@@ -243,11 +243,11 @@ function update_threshold_max(value) {
 function model_detection_update(option_obj) {
     if (option_obj.checked == true) {
         add_status_message(option_obj.value + " added to object detection");
-        socket.emit('WEB2SRV_detect_obj_on', option_obj.value);
+        socket.emit('WEB2SRV_detect_obj', option_obj.value + "_1");
     }
     else if (option_obj.checked == false) {
         add_status_message(option_obj.value + " removed from object detection");
-        socket.emit('WEB2SRV_detect_obj_off', option_obj.value);
+        socket.emit('WEB2SRV_detect_obj', option_obj.value + "_0");
     }
 }
 
