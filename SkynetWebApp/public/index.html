@@ -146,17 +146,24 @@ canvas {
                 </tr>
                 <tr>
                     <input type="range" min="0" id="threshold_slider" max="1" value=0.5 step="0.01" onchange="updateSlider(this.value)"> &nbsp;
-                    <input type="text" size="1" id="curr_threshold_val" readonly>
+                    <input type="text" size="1" id="curr_threshold_val" value=0.5 readonly>
                 </tr>
             </table> <br>
-            <tabel>
+            <table>
                 <tr> <!-- change options and id as needed -->
                     Model Detection <br>
                     <input type="checkbox" id="cb1" value="Option1" onchange="model_detection_update(this)"> Option1 <br>
                     <input type="checkbox" id="cb2" value="Option2" onchange="model_detection_update(this)"> Option2 <br>
                     <input type="checkbox" id="cb3" value="Option3" onchange="model_detection_update(this)"> Option3 <br>
                 </tr>
-            </tabel>
+            </table> <br>
+            <table>
+                <tr> <!-- C -->
+                    Model Detection (Currently used) <br>
+                    <input type="checkbox" id="cb4" value="Pedestrian Only" onchange="model_detection_update2(this)"> Pedestrian Only <br>
+                    <input type="checkbox" id="cb5" value="All Classes" onchange="model_detection_update2(this)"> All Classes <br>
+                </tr>
+            </table>
         </div>
 
         <div class="col-12 mt-3">
@@ -240,14 +247,28 @@ function update_threshold_max(value) {
     }
 }
 
+// delete function if not used.
 function model_detection_update(option_obj) {
     if (option_obj.checked == true) {
         add_status_message(option_obj.value + " added to object detection");
-        socket.emit('WEB2SRV_detect_obj', option_obj.value + "_1");
+        socket.emit('WEB2SRV_detect_obj_on', option_obj.value);
     }
     else if (option_obj.checked == false) {
         add_status_message(option_obj.value + " removed from object detection");
-        socket.emit('WEB2SRV_detect_obj', option_obj.value + "_0");
+        socket.emit('WEB2SRV_detect_obj_off', option_obj.value);
+    }
+}
+
+function model_detection_update2(option_obj) {
+    if (option_obj.checked == true) {
+        add_status_message("Object detection changed to " + option_obj.value);
+        var obj = [option_obj.value, "1"]
+        socket.emit('WEB2SRV_detect_obj', obj);
+    }
+    else if (option_obj.checked == false) {
+        add_status_message("Object detection for " + option_obj.value + " removed");
+        var obj = [option_obj.value, "0"]
+        socket.emit('WEB2SRV_detect_obj', obj);
     }
 }
 
