@@ -30,12 +30,8 @@ io.on('connection', (socket) => {
 
   socket.on('WEB2SRV_detect_obj', (array) => {
     if (array[1] == "1") {
-      console.log(array[0] + " detection turned on");
+      console.log("Object Detection changed to " + array[0]);
     }
-    else if (array[1] == "0") {
-      console.log(array[0] + " detection turned off");
-    }
-    
     socket.broadcast.emit('gs_mode', array);
   });
 
