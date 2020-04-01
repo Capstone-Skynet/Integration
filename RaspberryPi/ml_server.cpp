@@ -13,6 +13,13 @@
 #define PORT 8080
 #define PYTHON_CLIENT_PORT 8000
 
+float charArrToFloat(const char *fc)
+{
+  std::string fs(fc);
+  float f = std::stof(fs);
+  return f;
+}
+
 #define ENABLE_ML 0
 
 using namespace std;
@@ -143,6 +150,10 @@ int main(int argc, char const *argv[])
 
   image im = make_image(640, 480, 3);
 
+  // GSC - START
+  char *parameters = (char *)malloc(10);
+  // GSC - END
+
   while (1)
   {
 
@@ -190,14 +201,13 @@ int main(int argc, char const *argv[])
     //Initially read 4 bytes (Depending on the value recieved here, we might
     //have to read more if we've classified something!
 
-	
     if (ENABLE_ML)
     {
       int numClassified;
 
       int results;
       results = read(new_socket, &numClassified, 4);
-      
+
       int *detection = (int *)malloc(48 * sizeof(char));
 
       printf("Num Results: %d\n", numClassified);
@@ -220,19 +230,37 @@ int main(int argc, char const *argv[])
         printf("Type: %.*s, Width: %d, Height: %d, X: %d, Y: %d\n", 32, ((char *)detection), detection[8], detection[9], detection[10], detection[11]);
       }
     }
-    
+    else
+    {
+      // Manually add some delay to simulation ml delay
+      usleep(500000);
+    }
+
     // GSC - START
-  char result[100];
-  char *type = "person";
-  int height = rand() % 100;
-  int width = rand() % 100;
-  int x = rand() % 100;
-  int y = rand() % 100;
- 
-  sprintf(result, "Type: %.*s, Width: %d, Height: %d, X: %d, Y: %d", 32, type, height, width, x, y);
-  send(gs_client, result, strlen(result), 0);
-  usleep(100);
-  // GSC - END
+    char result[100];
+    char *type = "person";
+    int height = rand() % 100;
+    int width = rand() % 100;
+    int x = rand() % 100;
+    int y = rand() % 100;
+
+    sprintf(result, "Type: %.*s, Width: %d, Height: %d, X: %d, Y: %d", 32, type, height, width, x, y);
+    send(gs_client, result, strlen(result), 0);
+
+    int parameter_bytes = read(gs_client, parameters, 10);
+    if (parameter_bytes == 8)
+    {
+      printf("new threashold: %f\n", charArrToFloat(parameters));
+      if (parameters[7] == 'T')
+      {
+        printf("Pedestrian only\n");
+      }
+      else if (parameters[7] == 'F')
+      {
+        printf("All classes\n");
+      }
+    }
+    // GSC - END
   }
   return 0;
 }
