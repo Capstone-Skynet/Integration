@@ -2,6 +2,10 @@
 
 A js server-client webapp for the base station.
 
+## Requirements
+
+This server runs on Node.js. Please ensure Node.js version 13 is installed. Note that newer versions of Node.js should work but is not tested.
+
 ## Packages
 
 The `server.js` requires express and socket.io.
