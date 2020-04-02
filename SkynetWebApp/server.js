@@ -18,6 +18,7 @@ io.on('connection', (socket) => {
 
   // Receiving ml result from Python program
   socket.on('PY_ML_RESULT', (result) => {
+    socket.broadcast.emit('SRV_ML_RESULT', result);
     console.log(result);
   });
 

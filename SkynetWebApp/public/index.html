@@ -127,8 +127,7 @@ canvas {
         </div> -->
 
         <div class="col-md-9 mt-3">
-            <h3>Center Panel</h3>
-            <p> This is the center-panel. Most likely used for main video feed</p>
+            <h3>Camera View</h3>
             <div id="draw-container">
                 <!-- <img id="py-img"/>
                 <canvas id="draw-canvas"></canvas> -->
@@ -139,27 +138,29 @@ canvas {
             <h3>Settings</h3>
             <!-- <p> Potentially Used for Control Buttons, Visual Status indicators </p> -->
             <table>
-                <tr>
+                <!--<tr>
                     Algorithm Sensitivity
                     <td>Min: <input type="text" size="1" id="threshold_min" value="0" onchange="update_threshold_min(this.value)"> </td>
                     <td>Max: <input type="text" size="1" id="threshold_max" value="1" onchange="update_threshold_max(this.value)"></td> <br>                   
-                </tr>
+                </tr>-->
                 <tr>
-                    <input type="range" min="0" id="threshold_slider" max="1" value=0.5 step="0.01" onchange="updateSlider(this.value)"> &nbsp;
-                    <input type="text" size="1" id="curr_threshold_val" value=0.5 readonly>
+                    <b><u>Algorithm Sensitivity</u></b> &nbsp;
+                    <td><input type="range" min="0" id="threshold_slider" max="1" value=0.5 step="0.01" onchange="updateSlider(this.value)"> &nbsp;
+                    <input type="text" size="1" id="curr_threshold_val" value=0.5 readonly></td>
                 </tr>
             </table> <br>
+            <!---
             <table>
-                <tr> <!-- change options and id as needed -->
+                <tr> 
                     Model Detection - Checkbox Version <br>
                     <input type="checkbox" id="cb1" value="Option1" onchange="model_detection_update(this)"> Option1 <br>
                     <input type="checkbox" id="cb2" value="Option2" onchange="model_detection_update(this)"> Option2 <br>
                     <input type="checkbox" id="cb3" value="Option3" onchange="model_detection_update(this)"> Option3 <br>
                 </tr>
-            </table> <br>
+            </table> <br> -->
             <table>
                 <tr> <!-- C -->
-                    Model Detection - Radio Button Version <br>
+                    <b><u>Model Detection</u></b> <br>
                     <input type="radio" id="rb1" name="mdetection" value="Pedestrian Only" onchange="model_detection_update2(this)">  
                     <label for="rb1">&nbsp;Pedestrian Only</label><br>
                     <input type="radio" id="rb2" name="mdetection" checked value="All Classes" checked onchange="model_detection_update2(this)">
@@ -222,6 +223,10 @@ socket.on('SRV_IMG_DATA', (data)=> {
     receivedData = 'data:image/jpeg;base64,' + data.toString();
 });
 
+socket.on('SRV_ML_RESULT', (result)=> {
+    add_status_message(result.toString());
+});
+
 // Settings Scripts - needs use of the same socket
 function updateSlider(slideAmount) {
     socket.emit('WEB2SRV_threshold_val', slideAmount.toString())
@@ -270,8 +275,8 @@ function model_detection_update2(option_obj) {
 function add_status_message(message) {
     var txt = document.createTextNode("\n" + message);
     var ta = document.getElementById("status_box");
-    ta.appendChild(txt);
-    ta.scrollTop = ta.scrollHeight;
+    ta.value = message;
+    //ta.scrollTop = ta.scrollHeight;
 }
 
 </script>
