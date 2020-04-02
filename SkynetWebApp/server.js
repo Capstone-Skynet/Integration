@@ -19,6 +19,7 @@ io.on('connection', (socket) => {
   // Receiving ml result from Python program
   socket.on('PY_ML_RESULT', (result) => {
     console.log(result);
+    socket.broadcast.emit('ML_DATA', result);
   });
 
   // Changing settings from webapp

@@ -86,7 +86,7 @@ a:hover { color: var(--link-hover-color); }
 /* -------- */
 
 /* #draw-canvas, #py-img, canvas { */
-canvas {
+#img-canvas, #bbox-canvas {
     border: 1px solid greenyellow;
     resize: both;
     min-width: 300px;
@@ -95,7 +95,14 @@ canvas {
 }
 #draw-container {
     text-align: center;
+    position: relative;
 }
+
+#bbox-canvas,#img-canvas{
+    position: absolute; left: 80px;
+}
+
+
 </style>
 </head>
 
@@ -130,8 +137,9 @@ canvas {
             <h3>Center Panel</h3>
             <p> This is the center-panel. Most likely used for main video feed</p>
             <div id="draw-container">
-                <!-- <img id="py-img"/>
-                <canvas id="draw-canvas"></canvas> -->
+                <!-- <img id="py-img"/> -->
+                <canvas id="img-canvas" width="600" height="400"></canvas> <!-- Bottom Canvas must be placed first-->
+                <canvas id="bbox-canvas" width="600" height="400"></canvas> <!-- Top Canvas must be place second-->
             </div>
         </div>
 
@@ -141,12 +149,12 @@ canvas {
             <table>
                 <tr>
                     Algorithm Sensitivity
-                    <td>Min: <input type="text" size="1" id="threshold_min" value="0" onchange="update_threshold_min(this.value)"> </td>
-                    <td>Max: <input type="text" size="1" id="threshold_max" value="1" onchange="update_threshold_max(this.value)"></td> <br>                   
+                    <td>Min: <input type="text" size="2" id="threshold_min" value="0" onchange="update_threshold_min(this.value)"> </td>
+                    <td>Max: <input type="text" size="2" id="threshold_max" value="1" onchange="update_threshold_max(this.value)"></td> <br>                   
                 </tr>
                 <tr>
                     <input type="range" min="0" id="threshold_slider" max="1" value=0.5 step="0.01" onchange="updateSlider(this.value)"> &nbsp;
-                    <input type="text" size="1" id="curr_threshold_val" value=0.5 readonly>
+                    <input type="text" size="2" id="curr_threshold_val" value=0.5 readonly>
                 </tr>
             </table> <br>
             <table>
@@ -164,6 +172,7 @@ canvas {
                     <label for="rb1">&nbsp;Pedestrian Only</label><br>
                     <input type="radio" id="rb2" name="mdetection" checked value="All Classes" checked onchange="model_detection_update2(this)">
                     <label for="rb2">&nbsp;All Classes</label><br>
+                    <input type="button" value="test" onclick="parse_ml()"><br>
                 </tr>
             </table>
         </div>
@@ -185,7 +194,22 @@ let socket = io.connect('localhost');
 // let canvas = document.getElementById('draw-canvas');
 // let ctx = canvas.getContext('2d');
 
-let receivedData = null;
+
+let receivedData = 1;
+var mainimage = new Image();
+
+// Socket handler for when we are 
+// FIXME: Everytime a new frame is sent; previous frame is still stored in memory (Bad)
+// let img = new Image();
+socket.on('SRV_IMG_DATA', (data)=> {
+    // pyimage.setAttribute('src', 'data:image/png;base64,' + data.toString());
+    // img.src = 'data:image/jpeg;base64,' + data.toString();
+    // ctx.drawImage(img, 0, 0);
+    // console.log('hi');
+
+    mainimage.src = 'data:image/jpeg;base64,' + data.toString();
+    draw_main_image();
+});
 
 function setup() {
     let canvas = createCanvas(600, 400);
@@ -210,17 +234,77 @@ function draw() {
     }
 }
 
-// Socket handler for when we are 
-// FIXME: Everytime a new frame is sent; previous frame is still stored in memory (Bad)
-// let img = new Image();
-socket.on('SRV_IMG_DATA', (data)=> {
-    // pyimage.setAttribute('src', 'data:image/png;base64,' + data.toString());
-    // img.src = 'data:image/jpeg;base64,' + data.toString();
-    // ctx.drawImage(img, 0, 0);
-    // console.log('hi');
+// draws the main video feed images.
+function draw_main_image() {
+    var canvas = document.getElementById("img-canvas");
+    var ctx = canvas.getContext("2d");
 
-    receivedData = 'data:image/jpeg;base64,' + data.toString();
-});
+    ctx.drawImage(mainimage, 0,0);
+}
+
+let bbox_type = null;
+let bbox_width = null;
+let bbox_height = null;
+let bbox_x = null;
+let bbox_y = null;
+
+// using current format
+//ex Type: person, Width: 57, Height: 72, X:89, Y: 54
+function parse_ml (string) {
+    //var string = "Type: person, Width: 57, Height: 72, X: 50, Y: 50";
+    var array = string.split(", "); // split by comma first
+
+    for (i = 0; i < array.length; i++) {
+        var temp = array[i].split(" ");
+        //console.log(temp[0] + "........" + temp[1] + "\n");
+        switch (temp[0]) {
+            case "Type:":
+                bbox_type = temp[1];
+                break;
+            case "Width:":
+                bbox_width = parseInt(temp[1]);
+                break;
+            case "Height:":
+                bbox_height = parseInt(temp[1]);
+                break;
+            case "X:":
+                bbox_x = parseInt(temp[1]);;
+                break;
+            case "Y:":
+                bbox_y = parseInt(temp[1]);
+                break
+        }
+    }
+    //draw_bounding_box();
+    //console.log(string);
+    //console.log(bbox_type + "___" + bbox_width + "___" + bbox_height + "___" + bbox_x + "___" + bbox_y);
+}
+
+
+function draw_bounding_box() {
+    var canvas = document.getElementById("bbox-canvas");
+    var ctx = canvas.getContext("2d");
+
+    ctx.strokeStyle = "#FF0000";
+    ctx.lineWidth = 3
+    ctx.strokeRect(bbox_x, bbox_y, bbox_width, bbox_height);
+    ctx.font = "bold 12px Arial";
+    ctx.fillStyle = "#FF0000";
+    ctx.fillText(bbox_type, bbox_x, bbox_y - 5);
+}
+
+function clear_bbox_canvas() {
+    var canvas = document.getElementById("bbox-canvas");
+    var ctx = canvas.getContext("2d");
+
+    ctx.clearRect(0, 0, canvas.wdith, canvas.height);
+}
+
+socket.on('ML_DATA', (string) => {
+    parse_ml(string); // parse the string
+    clear_bbox_canvas();// clear the canvas of all boxes
+    draw_bounding_box(); // draw the box (atm just 1)
+})
 
 // Settings Scripts - needs use of the same socket
 function updateSlider(slideAmount) {
