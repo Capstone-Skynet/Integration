@@ -11,7 +11,7 @@ import socket
 # SETUP: Socket IO connections
 
 # MODIFY THIS
-GROUND_STATION_URL = 'http://192.168.0.107:80'
+GROUND_STATION_URL = 'http://192.168.137.2:80'
 
 CPP_SERVER_HOST = 'localhost'
 CPP_SERVER_PORT = 8000
@@ -45,9 +45,13 @@ def get_tcp_socket():
     return s
 
 def receive_str(socket):
-    byteArr = socket.recv(100)
-    if len(byteArr) > 0:
-        return byteArr.decode()
+    data = bytearray()
+    while len(data) < 100:
+        packet = socket.recv(100 - len(data))
+        if not packet:
+            return None
+        data.extend(packet)
+    return data.split(b'\0',1)[0].decode()
 
 def receive_image(socket):
     data = bytearray()
@@ -118,9 +122,12 @@ if __name__ == '__main__':
     
     while(True):
         try:
+            print("LOOP")
             cmd = receive_str(tcp_socket)
+            print(cmd)
 
             if cmd == 'IMAGE':
+                print("IMG_RECV")
                 frameData = receive_image(tcp_socket)
             
                 print(len(frameData))
@@ -129,10 +136,16 @@ if __name__ == '__main__':
                     sendImg(bytes(frameData))
             
             elif cmd == 'RESULT':
-                result = receive_str(tcp_socket)
-            
+                print("RES_RECV")
+                numResult = receive_str(tcp_socket)
+           
+                result = 'Result: \n'
+
+                for i in range(int(numResult)):
+                    result += receive_str(tcp_socket) + '\n'
+
                 sendResult(result)
-            
+                
                 send_parameters(tcp_socket)
 
         except KeyboardInterrupt:
