@@ -11,7 +11,7 @@ import socket
 # SETUP: Socket IO connections
 
 # MODIFY THIS
-GROUND_STATION_URL = 'http://192.168.0.107:80'
+GROUND_STATION_URL = 'http://192.168.137.2:80'
 
 CPP_SERVER_HOST = 'localhost'
 CPP_SERVER_PORT = 8000
@@ -118,7 +118,9 @@ if __name__ == '__main__':
     
     while(True):
         try:
+            print("LOOP")
             cmd = receive_str(tcp_socket)
+            print("CMDRECV")
 
             if cmd == 'IMAGE':
                 frameData = receive_image(tcp_socket)

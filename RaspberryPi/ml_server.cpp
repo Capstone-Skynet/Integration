@@ -20,7 +20,7 @@ float charArrToFloat(const char *fc)
   return f;
 }
 
-#define ENABLE_ML 0
+#define ENABLE_ML 1
 
 using namespace std;
 
@@ -52,6 +52,7 @@ int main(int argc, char const *argv[])
   gs_addr.sin_addr.s_addr = INADDR_ANY;
   gs_addr.sin_port = htons(PYTHON_CLIENT_PORT);
 
+
   if (bind(gs_sock, (struct sockaddr *)&gs_addr,
            sizeof(gs_addr)) < 0)
   {
@@ -64,6 +65,7 @@ int main(int argc, char const *argv[])
     perror("listen");
     exit(EXIT_FAILURE);
   }
+  printf("TEST\n");
 
   int addrlen1 = sizeof(gs_addr);
   if ((gs_client = accept(gs_sock, (struct sockaddr *)&gs_addr,
@@ -82,6 +84,8 @@ int main(int argc, char const *argv[])
   char *hello = "Hello from server";
   char buff[256];
   char *input_imgfn = buff;
+
+  printf("Opening ML socket...\n");
 
   if (ENABLE_ML)
   {
@@ -197,6 +201,8 @@ int main(int argc, char const *argv[])
     //Read Results:
 
     int bytesRead = 0;
+    
+    char result[100];
 
     //Initially read 4 bytes (Depending on the value recieved here, we might
     //have to read more if we've classified something!
@@ -212,40 +218,45 @@ int main(int argc, char const *argv[])
 
       printf("Num Results: %d\n", numClassified);
 
-      for (int i = 0; i < numClassified; i++)
-      {
-        bytesRead = 0;
-        while (bytesRead < 48)
+      if(numClassified == 0) {
+        sprintf(result, "NONE");
+        send(gs_client, result, strlen(result), 0);
+      } 
+      else {
+        for (int i = 0; i < numClassified; i++)
         {
-          results = read(new_socket, ((char *)detection) + bytesRead, 48 - bytesRead);
-
-          if (results < 0)
+          bytesRead = 0;
+          while (bytesRead < 48)
           {
-            printf("ERROR!\n");
-            exit(-1);
-          }
+            results = read(new_socket, ((char *)detection) + bytesRead, 48 - bytesRead);
 
-          bytesRead += results;
+            if (results < 0)
+            {
+              printf("ERROR!\n");
+              exit(-1);
+            }
+
+            bytesRead += results;
+          }
+          sprintf(result, "Type: %.*s, Width: %d, Height: %d, X: %d, Y: %d", 32, ((char *)detection), detection[8], detection[9], detection[10], detection[11]);
+          send(gs_client, result, strlen(result), 0);
         }
-        printf("Type: %.*s, Width: %d, Height: %d, X: %d, Y: %d\n", 32, ((char *)detection), detection[8], detection[9], detection[10], detection[11]);
       }
     }
     else
     {
       // Manually add some delay to simulation ml delay
       usleep(500000);
+      // GSC - START
+      char *type = "person";
+      int height = rand() % 100;
+      int width = rand() % 100;
+      int x = rand() % 100;
+      int y = rand() % 100;
+      sprintf(result, "Type: %.*s, Width: %d, Height: %d, X: %d, Y: %d", 32, type, height, width, x, y);
+      send(gs_client, result, strlen(result), 0);
     }
 
-    // GSC - START
-    char result[100];
-    char *type = "person";
-    int height = rand() % 100;
-    int width = rand() % 100;
-    int x = rand() % 100;
-    int y = rand() % 100;
-
-    sprintf(result, "Type: %.*s, Width: %d, Height: %d, X: %d, Y: %d", 32, type, height, width, x, y);
-    send(gs_client, result, strlen(result), 0);
 
     int parameter_bytes = read(gs_client, parameters, 10);
     if (parameter_bytes == 8)
