@@ -7,6 +7,7 @@ app.use(express.static('public'))
 const SERVERPORT = 80;
 let server = app.listen(SERVERPORT);
 let io = require('socket.io')(server);
+let MLDataParseRegex = /(?:Type|type)\s*:\s*([^,]+)\s*,\s*(?:Width|width)\s*:\s*(\d+)\s*,\s*(?:Height|height)\s*:\s*(\d+)\s*,\s*[xX]\s*:\s*([\d.]+)\s*,\s*[yY]\s*:\s*([\d.]+)/gm
 
 // Set up connections when socket connects
 io.on('connection', (socket) => {
@@ -18,9 +19,23 @@ io.on('connection', (socket) => {
 
   // Receiving ml result from Python program
   socket.on('PY_ML_RESULT', (result) => {
-    socket.broadcast.emit('SRV_ML_RESULT', result);
-    console.log(result);
+
+    // Use regex to parse string data into javascript object and pass that to client
+    let MLDataMatch = MLDataParseRegex.exec(result);
+    if (MLDataMatch !== null) {
+      socket.broadcast.emit('SRV_ML_RESULT', {
+        type: MLDataMatch[1],
+        w: MLDataMatch[2],
+        h: MLDataMatch[3],
+        x: MLDataMatch[4],
+        y: MLDataMatch[5]
+      });
+    }
   });
+
+  socket.on('PY_ML_CLEAR', ()=> {
+    socket.broadcast.emit('ML_CLEAR');
+  })
 
   // Changing settings from webapp
   //gs_threshold, gs_mode, bounding box
