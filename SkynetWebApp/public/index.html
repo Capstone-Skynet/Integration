@@ -127,8 +127,7 @@ canvas {
         </div> -->
 
         <div class="col-md-9 mt-3">
-            <h3>Center Panel</h3>
-            <p> This is the center-panel. Most likely used for main video feed</p>
+            <h3>Camera View</h3>
             <div id="draw-container">
                 <!-- <img id="py-img"/>
                 <canvas id="draw-canvas"></canvas> -->
@@ -136,35 +135,43 @@ canvas {
         </div>
 
         <div class="col-md-3 mt-3">
-            <h3>Right Panel</h3>
-            <p> This is the right panel</p> <br>
-            <p> Potentially Used for Control Buttons, Visual Status indicators </p>
+            <h3>Settings</h3>
+            <!-- <p> Potentially Used for Control Buttons, Visual Status indicators </p> -->
             <table>
-            <tr>
-                <th>Buttons</th>
-                <th>Radio Buttons</th>
-            </tr>
-            <tr>
-                <td> 
-                <input type="button" value="Option1" width="10"> <br>
-                <input type="button" value="Option2" width="10"> <br>
-                <input type="button" value="Option3" width="10"> <br>
-                <input type="button" value="Option4" width="10"> <br>
-                </td>
-                <td>
-                <input type="radio" name="rb1" value="Option1" checked> Option1 <br>
-                <input type="radio" name="rb2" value="Option2" > Option2 <br>
-                <input type="radio" name="rb3" value="Option3" > Option3 <br>
-                <input type="button" value="Submit Options" width="10">
-                </td>
-            </tr>
+                <!--<tr>
+                    Algorithm Sensitivity
+                    <td>Min: <input type="text" size="1" id="threshold_min" value="0" onchange="update_threshold_min(this.value)"> </td>
+                    <td>Max: <input type="text" size="1" id="threshold_max" value="1" onchange="update_threshold_max(this.value)"></td> <br>                   
+                </tr>-->
+                <tr>
+                    <b><u>Algorithm Sensitivity</u></b> &nbsp;
+                    <td><input type="range" min="0" id="threshold_slider" max="1" value=0.5 step="0.01" onchange="updateSlider(this.value)"> &nbsp;
+                    <input type="text" size="1" id="curr_threshold_val" value=0.5 readonly></td>
+                </tr>
+            </table> <br>
+            <!---
+            <table>
+                <tr> 
+                    Model Detection - Checkbox Version <br>
+                    <input type="checkbox" id="cb1" value="Option1" onchange="model_detection_update(this)"> Option1 <br>
+                    <input type="checkbox" id="cb2" value="Option2" onchange="model_detection_update(this)"> Option2 <br>
+                    <input type="checkbox" id="cb3" value="Option3" onchange="model_detection_update(this)"> Option3 <br>
+                </tr>
+            </table> <br> -->
+            <table>
+                <tr> <!-- C -->
+                    <b><u>Model Detection</u></b> <br>
+                    <input type="radio" id="rb1" name="mdetection" value="Pedestrian Only" onchange="model_detection_update2(this)">  
+                    <label for="rb1">&nbsp;Pedestrian Only</label><br>
+                    <input type="radio" id="rb2" name="mdetection" checked value="All Classes" checked onchange="model_detection_update2(this)">
+                    <label for="rb2">&nbsp;All Classes</label><br>
+                </tr>
             </table>
         </div>
 
         <div class="col-12 mt-3">
-            <p> This is the footer. Potentially used for live console-like status updates </p>
-            <textarea rows = "5" cols = "100" name = "status_box" readonly>
-                Status Messages should be here . . . 
+            <h3>Status Monitor</h3>>
+            <textarea rows = "5" cols = "100" id="status_box" readonly>
             </textarea>
         </div>
     </div>
@@ -215,6 +222,63 @@ socket.on('SRV_IMG_DATA', (data)=> {
 
     receivedData = 'data:image/jpeg;base64,' + data.toString();
 });
+
+socket.on('SRV_ML_RESULT', (result)=> {
+    add_status_message(result.toString());
+});
+
+// Settings Scripts - needs use of the same socket
+function updateSlider(slideAmount) {
+    socket.emit('WEB2SRV_threshold_val', slideAmount.toString())
+    add_status_message("Algorithm Sensitivity updated to " + slideAmount.toString());
+    document.getElementById("curr_threshold_val").value = slideAmount.toString();
+}
+
+function update_threshold_min(value) {
+    if (document.getElementById("threshold_slider").max < value) {
+        add_status_message("Entered min value is greater than current max. No changes made")
+    }
+    else {
+        document.getElementById("threshold_slider").min = value;
+        add_status_message("Threshold min value changed to " + value);
+    }
+}
+
+function update_threshold_max(value) {
+    if (document.getElementById("threshold_slider").min > value) {
+        add_status_message("Entered max value is smaller than current min. No changes made")
+    }
+    else {
+        document.getElementById("threshold_slider").max = value;
+        add_status_message("Threshold max value changed to " + value);
+    }
+}
+
+// delete function if not used.
+function model_detection_update(option_obj) {
+    if (option_obj.checked == true) {
+        add_status_message(option_obj.value + " added to object detection");
+        socket.emit('WEB2SRV_detect_obj_on', option_obj.value);
+    }
+    else if (option_obj.checked == false) {
+        add_status_message(option_obj.value + " removed from object detection");
+        socket.emit('WEB2SRV_detect_obj_off', option_obj.value);
+    }
+}
+
+function model_detection_update2(option_obj) {
+    add_status_message("Object detection changed to " + option_obj.value);
+    var obj = [option_obj.value, "1"]
+    socket.emit('WEB2SRV_detect_obj', obj);
+}
+
+function add_status_message(message) {
+    var txt = document.createTextNode("\n" + message);
+    var ta = document.getElementById("status_box");
+    ta.value = message;
+    //ta.scrollTop = ta.scrollHeight;
+}
+
 </script>
 </body>
 </html>

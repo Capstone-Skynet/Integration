@@ -3486,39 +3486,6 @@ void draw_detections(image im, detection *dets, int num, float thresh, char **na
         }
     }
 }
-
-void extract_detections(int * sendData, image im, detection *dets, int num, float thresh, char **names, int classes)
-{
-    int i,j;
-
-    int * sendDataIter = sendData+1;
-
-    for(i = 0; i < num; ++i){
-        char labelstr[4096] = {0};
-        int class_t = -1;
-        for(j = 0; j < classes; ++j){
-            if (dets[i].prob[j] > thresh){
-                strcat(labelstr, names[j]);
-                class_t = j;
-            }
-        }
-        if(class_t >= 0){
-            box b = dets[i].bbox;
-
-            strncpy(((char *) sendDataIter), labelstr, 32);
-
-            sendDataIter[8] = b.w * 416;
-            sendDataIter[9] = b.h * 416;
-            sendDataIter[10] = b.x * 416;
-            sendDataIter[11] = b.y * 416;
-
-            sendDataIter += 12;
-
-            //Update number classfied
-            sendData[0]++;
-        }
-    }
-}
 //////////////////////image end
 
 
