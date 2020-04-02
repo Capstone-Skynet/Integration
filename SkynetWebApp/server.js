@@ -42,6 +42,9 @@ io.on('connection', (socket) => {
   socket.on('WEB2SRV_threshold_val', (value) => {
     console.log("Threshold Value Updated to " + value)
     socket.broadcast.emit('gs_threshold', value);
+
+    // Emit ack back to sender
+    socket.emit('gs_threshold_ack', value);
   });
 
   socket.on('WEB2SRV_detect_obj', (array) => {
@@ -49,18 +52,19 @@ io.on('connection', (socket) => {
       console.log("Object Detection changed to " + array[0]);
     }
     socket.broadcast.emit('gs_mode', array);
+    socket.emit('gs_mode_ack', array[0]);
   });
 
   // delete if original option not chosen
-  socket.on('WEB2SRV_detect_obj_on', (value) => {
-    console.log(value + " detection turned on");
-    socket.broadcast.emit('SRV2RPI_detect_obj_on', value);
-  });
+  // socket.on('WEB2SRV_detect_obj_on', (value) => {
+  //   console.log(value + " detection turned on");
+  //   socket.broadcast.emit('SRV2RPI_detect_obj_on', value);
+  // });
 
-  socket.on('WEB2SRV_detect_obj_off', (value) => {
-    console.log(value + " detection turned off");
-    socket.broadcast.emit('SRV2RPI_detect_obj_off', value);
+  // socket.on('WEB2SRV_detect_obj_off', (value) => {
+  //   console.log(value + " detection turned off");
+  //   socket.broadcast.emit('SRV2RPI_detect_obj_off', value);
 
-  });
+  // });
 });
 

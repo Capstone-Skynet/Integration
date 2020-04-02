@@ -11,7 +11,7 @@ import socket
 # SETUP: Socket IO connections
 
 # MODIFY THIS
-GROUND_STATION_URL = 'http://192.168.0.107:80'
+GROUND_STATION_URL = 'http://192.168.137.2:80'
 
 CPP_SERVER_HOST = 'localhost'
 CPP_SERVER_PORT = 8000
@@ -19,19 +19,25 @@ CPP_SERVER_PORT = 8000
 SIGNAL_SEND_DATA = 'PY_IMG_DATA'
 SIGNAL_SEND_RESULT = 'PY_ML_RESULT'
 
+SIGNAL_RECEIVE_THRESHOLD = 'gs_threshold'
+SIGNAL_RECEIVE_MODE = 'gs_mode'
+
 IMAGE_LENGTH = 640 * 480 * 3
 
-def get_socketio_client():
-    client = socketio.Client()
+socketio_client = socketio.Client()
 
-    while not client.connected:
+THRESHOLD = 0.5
+PEDESTRIAN_ONLY = False
+
+def socketio_client_start():
+
+    while not socketio_client.connected:
         try:
-            client.connect(GROUND_STATION_URL)
+            socketio_client.connect(GROUND_STATION_URL)
         except socketio.exceptions.ConnectionError as e:
             print(f'Connection to {GROUND_STATION_URL} refused.')
             print(e)
             sys.exit(1)
-    return client
     
 def get_tcp_socket():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -39,9 +45,13 @@ def get_tcp_socket():
     return s
 
 def receive_str(socket):
-    byteArr = socket.recv(100)
-    if len(byteArr) > 0:
-        return byteArr.decode()
+    data = bytearray()
+    while len(data) < 100:
+        packet = socket.recv(100 - len(data))
+        if not packet:
+            return None
+        data.extend(packet)
+    return data.split(b'\0',1)[0].decode()
 
 def receive_image(socket):
     data = bytearray()
@@ -53,7 +63,8 @@ def receive_image(socket):
     return data
 
 
-def sendImg(client, receiveBytes):
+def sendImg(receiveBytes):
+    
     print("sending image")
     
     # formatting array
@@ -69,30 +80,77 @@ def sendImg(client, receiveBytes):
     
     frame_data = str(base64.b64encode(imgByteArr))
     
-    client.emit(SIGNAL_SEND_DATA, frame_data[2:len(frame_data) - 1])
+    socketio_client.emit(SIGNAL_SEND_DATA, frame_data[2:len(frame_data) - 1])
 
-def sendResult(client, result):
+def sendResult(result):
     print("sending result")
-    client.emit(SIGNAL_SEND_RESULT, result)
+    socketio_client.emit(SIGNAL_SEND_RESULT, result)
+
+@socketio_client.on(SIGNAL_RECEIVE_THRESHOLD)
+def on_message(data):
+    global THRESHOLD
+    THRESHOLD = float(data)
+    print('new threshold received: ' + data)
+    
+@socketio_client.on(SIGNAL_RECEIVE_MODE)
+def on_message(data):
+    global PEDESTRIAN_ONLY
+    if data[0] == 'Pedestrian Only':
+        PEDESTRIAN_ONLY = True
+        print('pedestrian only')
+    elif data[0] == 'All Classes':
+        PEDESTRIAN_ONLY = False
+        print('all enabled')
+    else:
+        print(data)
+
+def send_parameters(socket):
+    global THRESHOLD, PEDESTRIAN_ONLY
+    
+    if (PEDESTRIAN_ONLY):
+        parameters = "{0:5.4f};{1}".format(THRESHOLD, "T")
+    else:
+        parameters = "{0:5.4f};{1}".format(THRESHOLD, "F")
+    print(parameters)
+    socket.send(parameters.encode())
+
 
 if __name__ == '__main__':
-    try:
-        client = get_socketio_client()
-        tcp_socket = get_tcp_socket()
-
-        while(True):
+    socketio_client_start()
+    tcp_socket = get_tcp_socket()
+        
+    
+    while(True):
+        try:
+            print("LOOP")
             cmd = receive_str(tcp_socket)
+            print(cmd)
 
             if cmd == 'IMAGE':
+                print("IMG_RECV")
                 frameData = receive_image(tcp_socket)
+            
                 print(len(frameData))
+            
                 if frameData != None:
-                    sendImg(client, bytes(frameData))
-                
+                    sendImg(bytes(frameData))
+            
             elif cmd == 'RESULT':
-                result = receive_str(tcp_socket)
-                sendResult(client, result)
+                print("RES_RECV")
+                numResult = receive_str(tcp_socket)
+           
+                result = 'Result: \n'
 
+                for i in range(int(numResult)):
+                    result += receive_str(tcp_socket) + '\n'
 
-    except KeyboardInterrupt:
-        print('Program Terminated.')
+                sendResult(result)
+                
+                send_parameters(tcp_socket)
+
+        except KeyboardInterrupt:
+            print('Program Terminated.')
+            sys.exit(0)
+            
+        except UnicodeDecodeError:
+            print('Unicode decode error.')

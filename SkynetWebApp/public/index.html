@@ -20,7 +20,7 @@
 <style>
 :root {
 	--text-color: #000;
-    --bg-color: transparent;
+    --bg-color: white;
     --nav-bg-color: #f8f9fa;
 	--link-color: #0050C9;
 	--link-hover-color: #A92626;
@@ -49,7 +49,7 @@ li.nav-item { color: var(--text-color); }
 .navbar-brand { font-weight: bold; padding: 0; color: var(--text-color); }
 .navbar-brand:hover { color: var(--text-color); }
 .navbar-mh .navbar-nav .nav-link { color: var(--text-color);}
-.navbar-mh { border-bottom: 1px solid #666; }
+.navbar-mh { border-bottom: 1px solid #eee; background-color: var(--bg-color);}
 
 /* Make footer more spacious */
 footer { margin: 2em 0; }
@@ -83,12 +83,52 @@ a:hover { color: var(--link-hover-color); }
 
 ::selection { background: #4488ff44; }
 
+.background-gradient {
+	background: rgb(2,0,36);
+	background: linear-gradient(180deg, rgba(2,0,36,1) 0%, rgba(36,104,117,1) 100%);
+}
+
+.setting-category {
+	text-transform: uppercase;
+	font-weight: bold;
+	font-size: 70%;
+	letter-spacing: 1px;
+	margin-top: 1em;
+}
+.setting-slider {
+	width: 100%;
+}
+
+.logbox {
+	padding: 4px;
+	border: 1px solid rgba(0, 0, 0, 0.125);
+	border-radius: 4px;
+	min-height: 100px;
+	max-height: 400px;
+	overflow-y: auto;
+	font-family: monospace;
+	font-size: 85%;
+}
+
+.log-item {
+	padding-left: .7em;
+	width: 100%;
+	min-height: 1em;
+	border-bottom: 1px solid #eee;
+}
+
+.log-error  {
+	background-color: rgba(255, 0, 0, 0.2);
+	color: crimson;
+}
+
+.log-warning {
+	background-color: rgba(255, 255, 0, 0.125);
+	color: chocolate;
+}
+
 /* -------- */
 
-/* #draw-canvas, #py-img, canvas { */
-#img-canvas, #bbox-canvas {
-    border: 1px solid rgb(0, 0, 0);
-}
 #draw-container {
     text-align: center;
     position: relative;
@@ -108,92 +148,134 @@ a:hover { color: var(--link-hover-color); }
 <!-- Navbar -->
 <nav class="navbar sticky-top navbar-expand-md navbar-mh">
 	<div class="container-fluid">
-		<a href="/" class="navbar-brand">
-			<!-- <img src="/docs/assets/capstonelogo1.svg" width="30" height="30" class="d-inline-block align-top" alt=""> -->
-			Capstone Skynet Base Station
-		</a>
-		<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
-		<div class="collapse navbar-collapse" id="navbarSupportedContent">
-			<ul class='navbar-nav mr-auto'>
-				<li class='nav-item mx-2 active'><a class="nav-link py-1" href="#">Overview<span class="sr-only">(current)</span></a></li>
-			</ul>
-		</div>
+		<a href="/" class="navbar-brand">Skynet Ground Station</a>
+		<ul class='navbar-nav mr-auto'>
+			<li class='nav-item mx-2 active'><a class="nav-link py-1" href="#">Overview<span class="sr-only">(current)</span></a></li>
+		</ul>
 	</div>
 </nav>
 
 <!-- Main window container -->
 <div class="container-fluid">
     <div class="row">
-        <!-- <div class="col-md-3 mt-3">
-            <h3>Left Panel</h3>
-            <p>Potentially used for user setting options i.e. Saving files, changing colours etc.</p>
-        </div> -->
 
+		<!-- Panel 1: main camera view -->
         <div class="col-md-9 mt-3">
-            <h3>Center Panel</h3>
-            <p> This is the center-panel. Most likely used for main video feed</p>
-            <div id="draw-container">
-                <!-- <img id="py-img"/> -->
-                <!-- <canvas id="img-canvas" width="600" height="400"></canvas> Bottom Canvas must be placed first -->
-                <!-- <canvas id="bbox-canvas" width="600" height="400"></canvas> Top Canvas must be place second -->
+            <h3>Camera View</h3>
+            <div id="draw-container" class="background-gradient py-3">
             </div>
         </div>
 
+		<!-- Panel 2: controls panel -->
         <div class="col-md-3 mt-3">
-            <h3>Settings</h3>
-            <!-- <p> Potentially Used for Control Buttons, Visual Status indicators </p> -->
-            <table>
-                <tr>
-                    Algorithm Sensitivity
-                    <td>Min: <input type="text" size="2" id="threshold_min" value="0" onchange="update_threshold_min(this.value)"> </td>
-                    <td>Max: <input type="text" size="2" id="threshold_max" value="1" onchange="update_threshold_max(this.value)"></td> <br>                   
-                </tr>
-                <tr>
-                    <input type="range" min="0" id="threshold_slider" max="1" value=0.5 step="0.01" onchange="updateSlider(this.value)"> &nbsp;
-                    <input type="text" size="2" id="curr_threshold_val" value=0.5 readonly>
-                </tr>
-            </table> <br>
-            <table>
-                <tr> <!-- change options and id as needed -->
-                    Model Detection - Checkbox Version <br>
-                    <input type="checkbox" id="cb1" value="Option1" onchange="model_detection_update(this)"> Option1 <br>
-                    <input type="checkbox" id="cb2" value="Option2" onchange="model_detection_update(this)"> Option2 <br>
-                    <input type="checkbox" id="cb3" value="Option3" onchange="model_detection_update(this)"> Option3 <br>
-                </tr>
-            </table> <br>
-            <table>
-                <tr> <!-- C -->
-                    Model Detection - Radio Button Version <br>
-                    <input type="radio" id="rb1" name="mdetection" value="Pedestrian Only" onchange="model_detection_update2(this)">  
-                    <label for="rb1">&nbsp;Pedestrian Only</label><br>
-                    <input type="radio" id="rb2" name="mdetection" checked value="All Classes" checked onchange="model_detection_update2(this)">
-                    <label for="rb2">&nbsp;All Classes</label><br>
-                    <input type="button" value="test" onclick="parse_ml()"><br>
-                </tr>
-            </table>
+			<h3>Control Panel</h3>
+			
+			<section>
+				<p class="setting-category">Algorthm Settings</p>
+				<ul class="list-group">
+					<li class="list-group-item">
+						<p>Sensitivity: <span id="curr_threshold_val">--</span></p>
+						<input id="threshold_slider" class="setting-slider" type="range" min="0" max="1" value=0.5 step="0.01" onchange="changeMLThreshold(this.value)">
+					</li>
+					<li class="list-group-item">
+						<p>Model detection</p>
+						<input type="radio" id="rb1" name="mdetection" value="Pedestrian Only" onchange="model_detection_update2(this)">  
+						&nbsp;<label for="rb1">Detect persons</label><br>
+						<input type="radio" id="rb2" name="mdetection" checked value="All Classes" checked onchange="model_detection_update2(this)">
+						&nbsp;<label for="rb2">Detect all classes</label><br>
+					</li>
+				</ul>
+			</section>
+
+
+			<section>
+				<p class="setting-category">Canvas Settings</p>
+				<ul class="list-group">
+					<li class="list-group-item">
+						<p>Frame rate: <span id="canvas-fr-label">--</span></p>
+						<input id="canvas-fr-slider" class="setting-slider" type="range" min="1" max="30" value=15 step="1">
+					</li>
+					<li class="list-group-item">
+						<p>Bounding box opacity: <span id="canvas-bb-opacity-label">--</span></p>
+						<input id="canvas-fr-slider" class="setting-slider" type="range" min=0 max=1 value=1 step=0.1>
+					</li>
+				</ul>
+			</section>
         </div>
 
-        <div class="col-12 mt-3">
-            <h3>Status Monitor</h3>>
-            <textarea rows = "5" cols = "100" id="status_box" readonly>
-            </textarea>
+		<!-- Panel 3: Log -->
+        <div class="col-12 my-3">
+			<h3>Log</h3>
+			<div class="btn-group mb-2" role="group">
+				<button type="button" class="btn btn-sm btn-outline-secondary" onclick="alert('Not yet implemented')">Save to file</button>
+				<button class="btn btn-outline-danger btn-sm" onclick="clearLog()">Clear</button>
+			  </div>
+			<div id="logbox" class="logbox"></div>
         </div>
     </div>
 </div>
 
 
 <script>
-let socket = io.connect('localhost');
-socket.on('SRV_IMG_DATA', (data)=> {
-    let receivedData = 'data:image/jpeg;base64,' + data.toString();
-    cameraDataReceivedHandler(receivedData);
-});
 
 let cameraLayer, bboxLayer;
 let fps = 15;
 let cameraLayerTimeout = fps;
 let bboxClearFlag = false;
 
+// Globals
+let socket, receivedData = null;
+
+// Front end UI handlers
+function changeMLThreshold(slideAmount) {
+	socket.emit('WEB2SRV_threshold_val', slideAmount.toString())
+}
+
+function model_detection_update2(option_obj) {
+    socket.emit('WEB2SRV_detect_obj', [option_obj.value, "1"]);
+}
+
+// Logging UI Functions
+function addLog(msg, cls) {
+	let l = $("#logbox");
+	l.append('<div class="log-item' + cls + '">' + msg + '</div>')
+	l.scrollTop = l.scrollHeight;
+}
+function addLogMessage(message) { addLog(message, ''); }
+function addLogWarning(message) { addLog(message, 'log-warning'); }
+function addLogError(message) { addLog(message, 'log-error'); }
+function clearLog() { $('#logbox').empty(); }
+
+// Entry
+$(document).ready(()=> {
+	initialize();
+})
+
+function initialize() {
+	socket = io.connect('localhost');
+	// Socket handler for when we are 
+	// FIXME: Everytime a new frame is sent; previous frame is still stored in memory (Bad)
+	// let img = new Image();
+	socket.on('SRV_IMG_DATA', (data)=> {
+		let receivedData = 'data:image/jpeg;base64,' + data.toString();
+        cameraDataReceivedHandler(receivedData);
+	});
+
+	socket.on('SRV_ML_RESULT', (result)=> {
+		addLogMessage(result.toString());
+	});
+
+	socket.on('gs_threshold_ack', (value)=> {
+		addLogMessage("Algorithm Sensitivity updated to " + value.toString());
+		$('#curr_threshold_val').html(value.toString());
+	});
+
+	socket.on('gs_mode_ack', (value)=> {
+		addLogMessage("Object detection changed to " + value);
+	})
+}
+
+// Canvas functions
 function setup() {
     let canvas = createCanvas(600, 400);
     canvas.parent('draw-container');
@@ -254,59 +336,6 @@ socket.on('ML_DATA', (bboxData) => {
 socket.on('ML_CLEAR', ()=> {
     bboxLayer.clear();
 })
-
-// Settings Scripts - needs use of the same socket
-function updateSlider(slideAmount) {
-    socket.emit('WEB2SRV_threshold_val', slideAmount.toString())
-    add_status_message("Algorithm Sensitivity updated to " + slideAmount.toString());
-    document.getElementById("curr_threshold_val").value = slideAmount.toString();
-}
-
-function update_threshold_min(value) {
-    if (document.getElementById("threshold_slider").max < value) {
-        add_status_message("Entered min value is greater than current max. No changes made")
-    }
-    else {
-        document.getElementById("threshold_slider").min = value;
-        add_status_message("Threshold min value changed to " + value);
-    }
-}
-
-function update_threshold_max(value) {
-    if (document.getElementById("threshold_slider").min > value) {
-        add_status_message("Entered max value is smaller than current min. No changes made")
-    }
-    else {
-        document.getElementById("threshold_slider").max = value;
-        add_status_message("Threshold max value changed to " + value);
-    }
-}
-
-// delete function if not used.
-function model_detection_update(option_obj) {
-    if (option_obj.checked == true) {
-        add_status_message(option_obj.value + " added to object detection");
-        socket.emit('WEB2SRV_detect_obj_on', option_obj.value);
-    }
-    else if (option_obj.checked == false) {
-        add_status_message(option_obj.value + " removed from object detection");
-        socket.emit('WEB2SRV_detect_obj_off', option_obj.value);
-    }
-}
-
-function model_detection_update2(option_obj) {
-    add_status_message("Object detection changed to " + option_obj.value);
-    var obj = [option_obj.value, "1"]
-    socket.emit('WEB2SRV_detect_obj', obj);
-}
-
-function add_status_message(message) {
-    var txt = document.createTextNode("\n" + message);
-    var ta = document.getElementById("status_box");
-    ta.appendChild(txt);
-    ta.scrollTop = ta.scrollHeight;
-}
-
 </script>
 </body>
 </html>
