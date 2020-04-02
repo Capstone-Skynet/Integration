@@ -148,16 +148,10 @@ canvas {
 <!-- Navbar -->
 <nav class="navbar sticky-top navbar-expand-md navbar-mh">
 	<div class="container-fluid">
-		<a href="/" class="navbar-brand">
-			<!-- <img src="/docs/assets/capstonelogo1.svg" width="30" height="30" class="d-inline-block align-top" alt=""> -->
-			Skynet Ground Station
-		</a>
-		<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
-		<div class="collapse navbar-collapse" id="navbarSupportedContent">
-			<ul class='navbar-nav mr-auto'>
-				<li class='nav-item mx-2 active'><a class="nav-link py-1" href="#">Overview<span class="sr-only">(current)</span></a></li>
-			</ul>
-		</div>
+		<a href="/" class="navbar-brand">Skynet Ground Station</a>
+		<ul class='navbar-nav mr-auto'>
+			<li class='nav-item mx-2 active'><a class="nav-link py-1" href="#">Overview<span class="sr-only">(current)</span></a></li>
+		</ul>
 	</div>
 </nav>
 
@@ -207,7 +201,10 @@ canvas {
 		<!-- Panel 3: Log -->
         <div class="col-12 my-3">
 			<h3>Log</h3>
-			<button class="btn btn-outline-danger btn-sm mb-2" onclick="clearLog()">Clear</button>
+			<div class="btn-group mb-2" role="group">
+				<button type="button" class="btn btn-sm btn-outline-secondary" onclick="alert('Not yet implemented')">Save to file</button>
+				<button class="btn btn-outline-danger btn-sm" onclick="clearLog()">Clear</button>
+			  </div>
 			<div id="logbox" class="logbox"></div>
         </div>
     </div>
