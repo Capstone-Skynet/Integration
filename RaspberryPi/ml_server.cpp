@@ -135,7 +135,8 @@ int main(int argc, char const *argv[])
   raspicam::RaspiCam Camera;
 
   //Setup Camera
-  Camera.setFormat(raspicam::RASPICAM_FORMAT_RGB);
+  Camera.setFormat(raspicam::RASPICAM_FORMAT_BGR);
+  Camera.setExposure(raspicam::RASPICAM_EXPOSURE_AUTO);
   Camera.setCaptureSize(640, 480);
 
   printf("Opening Camera...\n");
