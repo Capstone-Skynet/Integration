@@ -23,7 +23,7 @@ io.on('connection', (socket) => {
     // Use regex to parse string data into javascript object and pass that to client
     let MLDataMatch = MLDataParseRegex.exec(result);
     if (MLDataMatch !== null) {
-      socket.broadcast.emit('ML_DATA', {
+      socket.broadcast.emit('SRV_ML_RESULT', {
         type: MLDataMatch[1],
         w: MLDataMatch[2],
         h: MLDataMatch[3],

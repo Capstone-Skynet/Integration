@@ -238,7 +238,7 @@ function model_detection_update2(option_obj) {
 // Logging UI Functions
 function addLog(msg, cls) {
 	let l = $("#logbox");
-	l.append('<div class="log-item' + cls + '">' + msg + '</div>')
+	l.append('<div class="log-item ' + cls + '">' + msg + '</div>')
 	l.scrollTop = l.scrollHeight;
 }
 function addLogMessage(message) { addLog(message, ''); }
@@ -253,17 +253,24 @@ $(document).ready(()=> {
 
 function initialize() {
 	socket = io.connect('localhost');
-	// Socket handler for when we are 
-	// FIXME: Everytime a new frame is sent; previous frame is still stored in memory (Bad)
-	// let img = new Image();
 	socket.on('SRV_IMG_DATA', (data)=> {
 		let receivedData = 'data:image/jpeg;base64,' + data.toString();
         cameraDataReceivedHandler(receivedData);
-	});
+    });
+        
+    socket.on('SRV_ML_RESULT', (bboxData) => {
+        bboxLayer.noFill();
+        bboxLayer.stroke(0, 255, 0);
+        bboxLayer.rect(bboxData.x, bboxData.y, bboxData.w, bboxData.h);
+        bboxLayer.fill(0, 255, 0);
+        bboxLayer.noStroke();
+        bboxLayer.textAlign(LEFT, BOTTOM);
+        bboxLayer.text(bboxData.type, bboxData.x, bboxData.y);
+    });
 
-	socket.on('SRV_ML_RESULT', (result)=> {
-		addLogMessage(result.toString());
-	});
+    socket.on('ML_CLEAR', ()=> {
+        bboxLayer.clear();
+    })
 
 	socket.on('gs_threshold_ack', (value)=> {
 		addLogMessage("Algorithm Sensitivity updated to " + value.toString());
@@ -272,7 +279,7 @@ function initialize() {
 
 	socket.on('gs_mode_ack', (value)=> {
 		addLogMessage("Object detection changed to " + value);
-	})
+    });
 }
 
 // Canvas functions
@@ -291,6 +298,7 @@ function draw() {
         cameraLayerTimeout--;
     } else {
         cameraDataOffline();
+        noLoop();
     }
 
     image(cameraLayer, 0, 0);
@@ -304,6 +312,8 @@ function cameraDataOffline() {
     cameraLayer.noStroke();
     cameraLayer.fill(255);
     cameraLayer.text("VIDEO OFFLINE", width/2, height/2);
+    bboxLayer.clear();
+    addLogError("Video offline");
 }
 
 function cameraDataReceivedHandler(data) {
@@ -321,21 +331,8 @@ function cameraDataReceivedHandler(data) {
 
     // reset timeout counter
     cameraLayerTimeout = fps;
+    loop();
 }
-
-socket.on('ML_DATA', (bboxData) => {
-    bboxLayer.noFill();
-    bboxLayer.stroke(0, 255, 0);
-    bboxLayer.rect(bboxData.x, bboxData.y, bboxData.w, bboxData.h);
-    bboxLayer.fill(0, 255, 0);
-    bboxLayer.noStroke();
-    bboxLayer.textAlign(LEFT, BOTTOM);
-    bboxLayer.text(bboxData.type, bboxData.x, bboxData.y);
-});
-
-socket.on('ML_CLEAR', ()=> {
-    bboxLayer.clear();
-})
 </script>
 </body>
 </html>

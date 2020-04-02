@@ -68,7 +68,7 @@ def main():
         i += 1
         client.emit('PY_ML_RESULT', f'Type: person, Width: 50, Height: 60, X: {random.randint(0, 600)}, Y: {random.randint(0, 400)}')
         if (i % 30 == 0):
-            client.emit('PY_ML_CLEAR', 0);
+            client.emit('PY_ML_CLEAR', 0)
 
         if CAMERA_FRAME_DELAY > 0:
             time.sleep(CAMERA_FRAME_DELAY)
