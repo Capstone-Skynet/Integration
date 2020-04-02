@@ -9,6 +9,7 @@
 #include <fstream>
 #include <iostream>
 #include <raspicam/raspicam.h>
+#include <fcntl.h>
 #include "imagesupport.h"
 #define PORT 8080
 #define PYTHON_CLIENT_PORT 8000
@@ -32,8 +33,8 @@ int main(int argc, char const *argv[])
 
   int opt = 1;
 
-  const char *image_transfer = "IMAGE";
-  const char *result_transfer = "RESULT";
+  const char image_transfer[100] = "IMAGE";
+  const char result_transfer[100] = "RESULT";
 
   if ((gs_sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
   {
@@ -129,6 +130,8 @@ int main(int argc, char const *argv[])
     }
   }
 
+  //fcntl(new_socket, F_SETFL, fcntl(new_socket, F_GETFL, 0) | O_NONBLOCK);
+
   raspicam::RaspiCam Camera;
 
   //Setup Camera
@@ -162,7 +165,7 @@ int main(int argc, char const *argv[])
   {
 
     // GSC - START
-    send(gs_client, image_transfer, strlen(image_transfer), 0);
+    send(gs_client, image_transfer, 100, 0);
     // GSC - END
 
     Camera.grab();
@@ -172,6 +175,7 @@ int main(int argc, char const *argv[])
     send(gs_client, data, 640 * 480 * 3, 0);
     // GSC - END
 
+    printf("WAIT 1\n");
     for (int k = 0; k < 3; ++k)
     {
       for (int j = 0; j < 480; ++j)
@@ -188,14 +192,13 @@ int main(int argc, char const *argv[])
     //image im = load_image_stb(input_imgfn,3);
     image sized = letterbox_image(im, 416, 416);
 
+    printf("WAIT 2\n");
     if (ENABLE_ML)
     {
-      save_image_png(sized, "test.png");
+      //save_image_png(sized, "test.png");
       send(new_socket, sized.data, (sized.h * sized.w * sized.c) * 4, 0);
     }
 
-    // GSC - START
-    send(gs_client, result_transfer, strlen(result_transfer), 0);
     // GSC - END
 
     //Read Results:
@@ -209,18 +212,37 @@ int main(int argc, char const *argv[])
 
     if (ENABLE_ML)
     {
-      int numClassified;
+      int numClassified = 0;
 
-      int results;
-      results = read(new_socket, &numClassified, 4);
+      int results = 0;
 
+      do {
+        printf("WAIT 3\n");
+        send(gs_client, image_transfer, 100, 0);
+        
+        Camera.grab();
+        Camera.retrieve(data, raspicam::RASPICAM_FORMAT_IGNORE);
+
+        // GSC - START
+        printf("WAIT 4\n");
+        send(gs_client, data, 640 * 480 * 3, 0);
+      
+        printf("WAIT 5\n");
+        results = recv(new_socket, &numClassified, 4, MSG_DONTWAIT);
+        printf("RESULTS: %d\n", results);
+      } while (results <= 0);
+
+      printf("READ RESULTS\n");
       int *detection = (int *)malloc(48 * sizeof(char));
-
+      
       printf("Num Results: %d\n", numClassified);
 
       if(numClassified == 0) {
+        send(gs_client, result_transfer, 100, 0);
+        printf("WAITHERE?\n");
         sprintf(result, "NONE");
-        send(gs_client, result, strlen(result), 0);
+        send(gs_client, result, 100, 0);
+        printf("WAIT?\n");
       } 
       else {
         for (int i = 0; i < numClassified; i++)
@@ -239,7 +261,8 @@ int main(int argc, char const *argv[])
             bytesRead += results;
           }
           sprintf(result, "Type: %.*s, Width: %d, Height: %d, X: %d, Y: %d", 32, ((char *)detection), detection[8], detection[9], detection[10], detection[11]);
-          send(gs_client, result, strlen(result), 0);
+          send(gs_client, result_transfer, 100, 0);
+          send(gs_client, result, 100, 0);
         }
       }
     }
@@ -248,17 +271,19 @@ int main(int argc, char const *argv[])
       // Manually add some delay to simulation ml delay
       usleep(500000);
       // GSC - START
+      send(gs_client, result_transfer, 100, 0);
       char *type = "person";
       int height = rand() % 100;
       int width = rand() % 100;
       int x = rand() % 100;
       int y = rand() % 100;
       sprintf(result, "Type: %.*s, Width: %d, Height: %d, X: %d, Y: %d", 32, type, height, width, x, y);
-      send(gs_client, result, strlen(result), 0);
+      send(gs_client, result, 100, 0);
     }
 
-
+    printf("PARAM1\n");
     int parameter_bytes = read(gs_client, parameters, 10);
+    printf("PARAM2\n");
     if (parameter_bytes == 8)
     {
       printf("new threashold: %f\n", charArrToFloat(parameters));

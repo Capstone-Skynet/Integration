@@ -45,9 +45,13 @@ def get_tcp_socket():
     return s
 
 def receive_str(socket):
-    byteArr = socket.recv(100)
-    if len(byteArr) > 0:
-        return byteArr.decode()
+    data = bytearray()
+    while len(data) < 100:
+        packet = socket.recv(100 - len(data))
+        if not packet:
+            return None
+        data.extend(packet)
+    return data.split(b'\0',1)[0].decode()
 
 def receive_image(socket):
     data = bytearray()
@@ -120,9 +124,10 @@ if __name__ == '__main__':
         try:
             print("LOOP")
             cmd = receive_str(tcp_socket)
-            print("CMDRECV")
+            print(cmd)
 
             if cmd == 'IMAGE':
+                print("IMG_RECV")
                 frameData = receive_image(tcp_socket)
             
                 print(len(frameData))
@@ -131,11 +136,13 @@ if __name__ == '__main__':
                     sendImg(bytes(frameData))
             
             elif cmd == 'RESULT':
+                print("RES_RECV")
                 result = receive_str(tcp_socket)
             
                 sendResult(result)
-            
+                print("AAA")
                 send_parameters(tcp_socket)
+                print("BBB")
 
         except KeyboardInterrupt:
             print('Program Terminated.')
