@@ -83,9 +83,24 @@ a:hover { color: var(--link-hover-color); }
 
 ::selection { background: #4488ff44; }
 
+.background-gradient {
+	background: rgb(2,0,36);
+	background: linear-gradient(180deg, rgba(2,0,36,1) 0%, rgba(36,104,117,1) 100%);
+}
+
+.setting-category {
+	text-transform: uppercase;
+	font-weight: bold;
+	font-size: 70%;
+	letter-spacing: 1px;
+	margin-top: 1em;
+}
+.setting-slider {
+	width: 100%;
+}
+
 /* -------- */
 
-/* #draw-canvas, #py-img, canvas { */
 canvas {
     border: 1px solid greenyellow;
     resize: both;
@@ -107,7 +122,7 @@ canvas {
 	<div class="container-fluid">
 		<a href="/" class="navbar-brand">
 			<!-- <img src="/docs/assets/capstonelogo1.svg" width="30" height="30" class="d-inline-block align-top" alt=""> -->
-			Capstone Skynet Base Station
+			Skynet Ground Station
 		</a>
 		<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
 		<div class="collapse navbar-collapse" id="navbarSupportedContent">
@@ -121,52 +136,34 @@ canvas {
 <!-- Main window container -->
 <div class="container-fluid">
     <div class="row">
-        <!-- <div class="col-md-3 mt-3">
-            <h3>Left Panel</h3>
-            <p>Potentially used for user setting options i.e. Saving files, changing colours etc.</p>
-        </div> -->
 
+		<!-- Panel 1: main camera view -->
         <div class="col-md-9 mt-3">
             <h3>Camera View</h3>
-            <div id="draw-container">
-                <!-- <img id="py-img"/>
-                <canvas id="draw-canvas"></canvas> -->
+            <div id="draw-container" class="background-gradient py-3">
             </div>
         </div>
 
+		<!-- Panel 2: controls panel -->
         <div class="col-md-3 mt-3">
-            <h3>Settings</h3>
-            <!-- <p> Potentially Used for Control Buttons, Visual Status indicators </p> -->
-            <table>
-                <!--<tr>
-                    Algorithm Sensitivity
-                    <td>Min: <input type="text" size="1" id="threshold_min" value="0" onchange="update_threshold_min(this.value)"> </td>
-                    <td>Max: <input type="text" size="1" id="threshold_max" value="1" onchange="update_threshold_max(this.value)"></td> <br>                   
-                </tr>-->
-                <tr>
-                    <b><u>Algorithm Sensitivity</u></b> &nbsp;
-                    <td><input type="range" min="0" id="threshold_slider" max="1" value=0.5 step="0.01" onchange="updateSlider(this.value)"> &nbsp;
-                    <input type="text" size="1" id="curr_threshold_val" value=0.5 readonly></td>
-                </tr>
-            </table> <br>
-            <!---
-            <table>
-                <tr> 
-                    Model Detection - Checkbox Version <br>
-                    <input type="checkbox" id="cb1" value="Option1" onchange="model_detection_update(this)"> Option1 <br>
-                    <input type="checkbox" id="cb2" value="Option2" onchange="model_detection_update(this)"> Option2 <br>
-                    <input type="checkbox" id="cb3" value="Option3" onchange="model_detection_update(this)"> Option3 <br>
-                </tr>
-            </table> <br> -->
-            <table>
-                <tr> <!-- C -->
-                    <b><u>Model Detection</u></b> <br>
-                    <input type="radio" id="rb1" name="mdetection" value="Pedestrian Only" onchange="model_detection_update2(this)">  
-                    <label for="rb1">&nbsp;Pedestrian Only</label><br>
-                    <input type="radio" id="rb2" name="mdetection" checked value="All Classes" checked onchange="model_detection_update2(this)">
-                    <label for="rb2">&nbsp;All Classes</label><br>
-                </tr>
-            </table>
+			<h3>Control Panel</h3>
+			
+			<section>
+				<p class="setting-category">Algorthm Settings</p>
+				<ul class="list-group">
+					<li class="list-group-item">
+						<p>Sensitivity: <span id="curr_threshold_val">--</span></p>
+						<input id="threshold_slider" class="setting-slider" type="range" min="0" max="1" value=0.5 step="0.01" onchange="updateSlider(this.value)">
+					</li>
+					<li class="list-group-item">
+						<p>Model detection</p>
+						<input type="radio" id="rb1" name="mdetection" value="Pedestrian Only" onchange="model_detection_update2(this)">  
+						<label for="rb1">&nbsp;Pedestrian Only</label><br>
+						<input type="radio" id="rb2" name="mdetection" checked value="All Classes" checked onchange="model_detection_update2(this)">
+						<label for="rb2">&nbsp;All Classes</label><br>
+					</li>
+				</ul>
+			</section>
         </div>
 
         <div class="col-12 mt-3">
@@ -180,11 +177,6 @@ canvas {
 
 <script>
 let socket = io.connect('localhost');
-
-// let pyimage = document.getElementById('py-img');
-// 
-// let canvas = document.getElementById('draw-canvas');
-// let ctx = canvas.getContext('2d');
 
 let receivedData = null;
 
@@ -215,11 +207,6 @@ function draw() {
 // FIXME: Everytime a new frame is sent; previous frame is still stored in memory (Bad)
 // let img = new Image();
 socket.on('SRV_IMG_DATA', (data)=> {
-    // pyimage.setAttribute('src', 'data:image/png;base64,' + data.toString());
-    // img.src = 'data:image/jpeg;base64,' + data.toString();
-    // ctx.drawImage(img, 0, 0);
-    // console.log('hi');
-
     receivedData = 'data:image/jpeg;base64,' + data.toString();
 });
 
@@ -229,9 +216,12 @@ socket.on('SRV_ML_RESULT', (result)=> {
 
 // Settings Scripts - needs use of the same socket
 function updateSlider(slideAmount) {
-    socket.emit('WEB2SRV_threshold_val', slideAmount.toString())
+	socket.emit('WEB2SRV_threshold_val', slideAmount.toString())
+	
+	// TODO: this should be moved to handler after server (i.e UI should not update if the 
+	//       signal is not propeller emitted)
     add_status_message("Algorithm Sensitivity updated to " + slideAmount.toString());
-    document.getElementById("curr_threshold_val").value = slideAmount.toString();
+    document.getElementById("curr_threshold_val").textContent = slideAmount.toString();
 }
 
 function update_threshold_min(value) {
