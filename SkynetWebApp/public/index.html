@@ -184,30 +184,33 @@ a:hover { color: var(--link-hover-color); }
 
 <script>
 let socket = io.connect('localhost');
-
-// Socket handler for when we are 
-// FIXME: Everytime a new frame is sent; previous frame is still stored in memory (Bad)
 socket.on('SRV_IMG_DATA', (data)=> {
     let receivedData = 'data:image/jpeg;base64,' + data.toString();
     cameraDataReceivedHandler(receivedData);
 });
 
 let cameraLayer, bboxLayer;
+let fps = 15;
+let cameraLayerTimeout = fps;
 let bboxClearFlag = false;
 
 function setup() {
     let canvas = createCanvas(600, 400);
     canvas.parent('draw-container');
-    frameRate(15);
+    frameRate(fps);
     textSize(32);
 
     cameraLayer = createGraphics(width, height);
-    cameraDataOffline();
-
     bboxLayer = createGraphics(width, height);
 }
 
 function draw() {
+    if (cameraLayerTimeout > 0) {
+        cameraLayerTimeout--;
+    } else {
+        cameraDataOffline();
+    }
+
     image(cameraLayer, 0, 0);
     image(bboxLayer, 0, 0);
 }
@@ -230,8 +233,12 @@ function cameraDataReceivedHandler(data) {
         cameraLayer.image(img, 0, 0);
         cameraLayer.stroke(0);
         cameraLayer.fill(255);
+        cameraLayer.textAlign(LEFT, TOP);
         cameraLayer.text("Live", 10, 40);
     });
+
+    // reset timeout counter
+    cameraLayerTimeout = fps;
 }
 
 socket.on('ML_DATA', (bboxData) => {
