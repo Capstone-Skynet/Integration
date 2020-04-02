@@ -87,11 +87,7 @@ a:hover { color: var(--link-hover-color); }
 
 /* #draw-canvas, #py-img, canvas { */
 #img-canvas, #bbox-canvas {
-    border: 1px solid greenyellow;
-    resize: both;
-    min-width: 300px;
-    min-height: 200px;
-    max-height: 800px;
+    border: 1px solid rgb(0, 0, 0);
 }
 #draw-container {
     text-align: center;
@@ -138,8 +134,8 @@ a:hover { color: var(--link-hover-color); }
             <p> This is the center-panel. Most likely used for main video feed</p>
             <div id="draw-container">
                 <!-- <img id="py-img"/> -->
-                <canvas id="img-canvas" width="600" height="400"></canvas> <!-- Bottom Canvas must be placed first-->
-                <canvas id="bbox-canvas" width="600" height="400"></canvas> <!-- Top Canvas must be place second-->
+                <!-- <canvas id="img-canvas" width="600" height="400"></canvas> Bottom Canvas must be placed first -->
+                <!-- <canvas id="bbox-canvas" width="600" height="400"></canvas> Top Canvas must be place second -->
             </div>
         </div>
 
@@ -189,121 +185,67 @@ a:hover { color: var(--link-hover-color); }
 <script>
 let socket = io.connect('localhost');
 
-// let pyimage = document.getElementById('py-img');
-// 
-// let canvas = document.getElementById('draw-canvas');
-// let ctx = canvas.getContext('2d');
-
-
-let receivedData = 1;
-var mainimage = new Image();
-
 // Socket handler for when we are 
 // FIXME: Everytime a new frame is sent; previous frame is still stored in memory (Bad)
-// let img = new Image();
 socket.on('SRV_IMG_DATA', (data)=> {
-    // pyimage.setAttribute('src', 'data:image/png;base64,' + data.toString());
-    // img.src = 'data:image/jpeg;base64,' + data.toString();
-    // ctx.drawImage(img, 0, 0);
-    // console.log('hi');
-
-    mainimage.src = 'data:image/jpeg;base64,' + data.toString();
-    draw_main_image();
+    let receivedData = 'data:image/jpeg;base64,' + data.toString();
+    cameraDataReceivedHandler(receivedData);
 });
+
+let cameraLayer, bboxLayer;
+let bboxClearFlag = false;
 
 function setup() {
     let canvas = createCanvas(600, 400);
     canvas.parent('draw-container');
     frameRate(15);
     textSize(32);
+
+    cameraLayer = createGraphics(width, height);
+    cameraDataOffline();
+
+    bboxLayer = createGraphics(width, height);
 }
 
 function draw() {
-    if (receivedData !== null) {
-        loadImage(receivedData, img => {
-            image(img, 0, 0);
+    image(cameraLayer, 0, 0);
+    image(bboxLayer, 0, 0);
+}
 
-            stroke(0);
-            fill(255);
-            text("Live", 10, 40);
-        });
-    } else {
-        stroke(255, 0, 0);
-        line(0, 0, width, height);
-        line(width, 0, 0, height);
+function cameraDataOffline() {
+    cameraLayer.background(0, 0, 255);
+    cameraLayer.textAlign(CENTER, CENTER);
+    cameraLayer.textSize(32);
+    cameraLayer.noStroke();
+    cameraLayer.fill(255);
+    cameraLayer.text("VIDEO OFFLINE", width/2, height/2);
+}
+
+function cameraDataReceivedHandler(data) {
+    if (cameraLayer === undefined) {
+        return;
     }
+
+    loadImage(data, img => {
+        cameraLayer.image(img, 0, 0);
+        cameraLayer.stroke(0);
+        cameraLayer.fill(255);
+        cameraLayer.text("Live", 10, 40);
+    });
 }
 
-// draws the main video feed images.
-function draw_main_image() {
-    var canvas = document.getElementById("img-canvas");
-    var ctx = canvas.getContext("2d");
+socket.on('ML_DATA', (bboxData) => {
+    bboxLayer.noFill();
+    bboxLayer.stroke(0, 255, 0);
+    bboxLayer.rect(bboxData.x, bboxData.y, bboxData.w, bboxData.h);
+    bboxLayer.fill(0, 255, 0);
+    bboxLayer.noStroke();
+    bboxLayer.textAlign(LEFT, BOTTOM);
+    bboxLayer.text(bboxData.type, bboxData.x, bboxData.y);
+});
 
-    ctx.drawImage(mainimage, 0,0);
-}
-
-let bbox_type = null;
-let bbox_width = null;
-let bbox_height = null;
-let bbox_x = null;
-let bbox_y = null;
-
-// using current format
-//ex Type: person, Width: 57, Height: 72, X:89, Y: 54
-function parse_ml (string) {
-    //var string = "Type: person, Width: 57, Height: 72, X: 50, Y: 50";
-    var array = string.split(", "); // split by comma first
-
-    for (i = 0; i < array.length; i++) {
-        var temp = array[i].split(" ");
-        //console.log(temp[0] + "........" + temp[1] + "\n");
-        switch (temp[0]) {
-            case "Type:":
-                bbox_type = temp[1];
-                break;
-            case "Width:":
-                bbox_width = parseInt(temp[1]);
-                break;
-            case "Height:":
-                bbox_height = parseInt(temp[1]);
-                break;
-            case "X:":
-                bbox_x = parseInt(temp[1]);;
-                break;
-            case "Y:":
-                bbox_y = parseInt(temp[1]);
-                break
-        }
-    }
-    //draw_bounding_box();
-    //console.log(string);
-    //console.log(bbox_type + "___" + bbox_width + "___" + bbox_height + "___" + bbox_x + "___" + bbox_y);
-}
-
-
-function draw_bounding_box() {
-    var canvas = document.getElementById("bbox-canvas");
-    var ctx = canvas.getContext("2d");
-
-    ctx.strokeStyle = "#FF0000";
-    ctx.lineWidth = 3
-    ctx.strokeRect(bbox_x, bbox_y, bbox_width, bbox_height);
-    ctx.font = "bold 12px Arial";
-    ctx.fillStyle = "#FF0000";
-    ctx.fillText(bbox_type, bbox_x, bbox_y - 5);
-}
-
-function clear_bbox_canvas() {
-    var canvas = document.getElementById("bbox-canvas");
-    var ctx = canvas.getContext("2d");
-
-    ctx.clearRect(0, 0, canvas.wdith, canvas.height);
-}
-
-socket.on('ML_DATA', (string) => {
-    parse_ml(string); // parse the string
-    clear_bbox_canvas();// clear the canvas of all boxes
-    draw_bounding_box(); // draw the box (atm just 1)
+socket.on('ML_CLEAR', ()=> {
+    bboxLayer.clear();
 })
 
 // Settings Scripts - needs use of the same socket
