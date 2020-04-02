@@ -175,7 +175,7 @@ canvas {
 				<ul class="list-group">
 					<li class="list-group-item">
 						<p>Sensitivity: <span id="curr_threshold_val">--</span></p>
-						<input id="threshold_slider" class="setting-slider" type="range" min="0" max="1" value=0.5 step="0.01" onchange="updateSlider(this.value)">
+						<input id="threshold_slider" class="setting-slider" type="range" min="0" max="1" value=0.5 step="0.01" onchange="changeMLThreshold(this.value)">
 					</li>
 					<li class="list-group-item">
 						<p>Model detection</p>
@@ -217,10 +217,59 @@ canvas {
 
 
 <script>
-let socket = io.connect('localhost');
 
-let receivedData = null;
+// Globals
+let socket, receivedData = null;
 
+// Front end UI handlers
+function changeMLThreshold(slideAmount) {
+	socket.emit('WEB2SRV_threshold_val', slideAmount.toString())
+}
+
+function model_detection_update2(option_obj) {
+    socket.emit('WEB2SRV_detect_obj', [option_obj.value, "1"]);
+}
+
+// Logging UI Functions
+function addLog(msg, cls) {
+	let l = $("#logbox");
+	l.append('<div class="log-item' + cls + '">' + msg + '</div>')
+	l.scrollTop = l.scrollHeight;
+}
+function addLogMessage(message) { addLog(message, ''); }
+function addLogWarning(message) { addLog(message, 'log-warning'); }
+function addLogError(message) { addLog(message, 'log-error'); }
+function clearLog() { $('#logbox').empty(); }
+
+// Entry
+$(document).ready(()=> {
+	initialize();
+})
+
+function initialize() {
+	socket = io.connect('localhost');
+	// Socket handler for when we are 
+	// FIXME: Everytime a new frame is sent; previous frame is still stored in memory (Bad)
+	// let img = new Image();
+	socket.on('SRV_IMG_DATA', (data)=> {
+		receivedData = 'data:image/jpeg;base64,' + data.toString();
+	});
+
+	socket.on('SRV_ML_RESULT', (result)=> {
+		addLogMessage(result.toString());
+	});
+
+	socket.on('gs_threshold_ack', (value)=> {
+		addLogMessage("Algorithm Sensitivity updated to " + value.toString());
+		$('#curr_threshold_val').html(value.toString());
+	});
+
+	socket.on('gs_mode_ack', (value)=> {
+		addLogMessage("Object detection changed to " + value);
+	})
+}
+
+// Canvas functions
 function setup() {
     let canvas = createCanvas(600, 400);
     canvas.parent('draw-container');
@@ -242,79 +291,6 @@ function draw() {
         line(0, 0, width, height);
         line(width, 0, 0, height);
     }
-}
-
-// Socket handler for when we are 
-// FIXME: Everytime a new frame is sent; previous frame is still stored in memory (Bad)
-// let img = new Image();
-socket.on('SRV_IMG_DATA', (data)=> {
-    receivedData = 'data:image/jpeg;base64,' + data.toString();
-});
-
-socket.on('SRV_ML_RESULT', (result)=> {
-    addLogMessage(result.toString());
-});
-
-// Settings Scripts - needs use of the same socket
-function updateSlider(slideAmount) {
-	socket.emit('WEB2SRV_threshold_val', slideAmount.toString())
-	
-	// TODO: this should be moved to handler after server (i.e UI should not update if the 
-	//       signal is not propeller emitted)
-    addLogMessage("Algorithm Sensitivity updated to " + slideAmount.toString());
-    document.getElementById("curr_threshold_val").textContent = slideAmount.toString();
-}
-
-// function update_threshold_min(value) {
-//     if (document.getElementById("threshold_slider").max < value) {
-//         addLogMessage("Entered min value is greater than current max. No changes made")
-//     }
-//     else {
-//         document.getElementById("threshold_slider").min = value;
-//         addLogMessage("Threshold min value changed to " + value);
-//     }
-// }
-
-// function update_threshold_max(value) {
-//     if (document.getElementById("threshold_slider").min > value) {
-//         addLogMessage("Entered max value is smaller than current min. No changes made")
-//     }
-//     else {
-//         document.getElementById("threshold_slider").max = value;
-//         addLogMessage("Threshold max value changed to " + value);
-//     }
-// }
-
-// delete function if not used.
-// function model_detection_update(option_obj) {
-//     if (option_obj.checked == true) {
-//         addLogMessage(option_obj.value + " added to object detection");
-//         socket.emit('WEB2SRV_detect_obj_on', option_obj.value);
-//     }
-//     else if (option_obj.checked == false) {
-//         addLogMessage(option_obj.value + " removed from object detection");
-//         socket.emit('WEB2SRV_detect_obj_off', option_obj.value);
-//     }
-// }
-
-function model_detection_update2(option_obj) {
-    addLogMessage("Object detection changed to " + option_obj.value);
-    var obj = [option_obj.value, "1"]
-    socket.emit('WEB2SRV_detect_obj', obj);
-}
-
-function addLogMessage(message) {
-	$('#logbox').append('<div class="log-item">' + message + '</div>')
-}
-function addLogWarning(message) {
-	$('#logbox').append('<div class="log-item log-warning">' + message + '</div>')
-}
-function addLogError(message) {
-	$('#logbox').append('<div class="log-item log-error">' + message + '</div>')
-}
-
-function clearLog() {
-	$('#logbox').empty();
 }
 
 </script>
