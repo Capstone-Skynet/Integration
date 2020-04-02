@@ -137,12 +137,16 @@ if __name__ == '__main__':
             
             elif cmd == 'RESULT':
                 print("RES_RECV")
-                result = receive_str(tcp_socket)
-            
+                numResult = receive_str(tcp_socket)
+           
+                result = 'Result: \n'
+
+                for i in range(int(numResult)):
+                    result += receive_str(tcp_socket) + '\n'
+
                 sendResult(result)
-                print("AAA")
+                
                 send_parameters(tcp_socket)
-                print("BBB")
 
         except KeyboardInterrupt:
             print('Program Terminated.')

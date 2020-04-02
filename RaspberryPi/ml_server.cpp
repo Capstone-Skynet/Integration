@@ -236,34 +236,28 @@ int main(int argc, char const *argv[])
       int *detection = (int *)malloc(48 * sizeof(char));
       
       printf("Num Results: %d\n", numClassified);
+      
+      send(gs_client, result_transfer, 100, 0);
+      sprintf(result, "%d", numClassified);  
+      send(gs_client, result, 100, 0);
 
-      if(numClassified == 0) {
-        send(gs_client, result_transfer, 100, 0);
-        printf("WAITHERE?\n");
-        sprintf(result, "NONE");
-        send(gs_client, result, 100, 0);
-        printf("WAIT?\n");
-      } 
-      else {
-        for (int i = 0; i < numClassified; i++)
+      for (int i = 0; i < numClassified; i++)
+      {
+        bytesRead = 0;
+        while (bytesRead < 48)
         {
-          bytesRead = 0;
-          while (bytesRead < 48)
+          results = read(new_socket, ((char *)detection) + bytesRead, 48 - bytesRead);
+
+          if (results < 0)
           {
-            results = read(new_socket, ((char *)detection) + bytesRead, 48 - bytesRead);
-
-            if (results < 0)
-            {
-              printf("ERROR!\n");
-              exit(-1);
-            }
-
-            bytesRead += results;
+            printf("ERROR!\n");
+            exit(-1);
           }
-          sprintf(result, "Type: %.*s, Width: %d, Height: %d, X: %d, Y: %d", 32, ((char *)detection), detection[8], detection[9], detection[10], detection[11]);
-          send(gs_client, result_transfer, 100, 0);
-          send(gs_client, result, 100, 0);
+
+          bytesRead += results;
         }
+        sprintf(result, "Type: %.*s, Width: %d, Height: %d, X: %d, Y: %d", 32, ((char *)detection), detection[8], detection[9], detection[10], detection[11]);
+        send(gs_client, result, 100, 0);
       }
     }
     else
