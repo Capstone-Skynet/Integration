@@ -10,7 +10,12 @@
 #include <iostream>
 #include <raspicam/raspicam.h>
 #include <fcntl.h>
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include "opencv2/imgproc/imgproc.hpp"
 #include "imagesupport.h"
+#include <cstdio>
+#include <ctime>
 #define PORT 8080
 #define PYTHON_CLIENT_PORT 8000
 
@@ -24,6 +29,27 @@ float charArrToFloat(const char *fc)
 #define ENABLE_ML 1
 
 using namespace std;
+using namespace cv;
+
+std::clock_t start;
+
+void updateFrame(VideoCapture capture, unsigned char *data)
+{
+  int maxFrame = capture.get(7);
+
+  int currFrame = (int) (std::clock() - start) * 30 / CLOCKS_PER_SEC % maxFrame;
+  printf("Current Frame: %d\n", currFrame);
+
+  capture.set(1, currFrame);
+
+  Mat frame;
+
+  capture >> frame;
+
+  cv::cvtColor(frame, frame, CV_BGR2RGB);
+
+  memcpy(data, frame.ptr(0), frame.cols*frame.rows*sizeof(uint8_t)*3);
+}
 
 int main(int argc, char const *argv[])
 {
@@ -161,18 +187,22 @@ int main(int argc, char const *argv[])
   char *parameters = (char *)malloc(10);
   // GSC - END
 
+  double duration;
+  start = std::clock();
+  VideoCapture capture("testvideo.mp4");    
+
   while (1)
   {
 
     // GSC - START
-    send(gs_client, image_transfer, 100, 0);
     // GSC - END
 
     Camera.grab();
     Camera.retrieve(data, raspicam::RASPICAM_FORMAT_IGNORE);
 
+    updateFrame(capture, data);
+
     // GSC - START
-    send(gs_client, data, 640 * 480 * 3, 0);
     // GSC - END
 
     for (int k = 0; k < 3; ++k)
@@ -214,17 +244,22 @@ int main(int argc, char const *argv[])
       int results = 0;
 
       do {
-        send(gs_client, image_transfer, 100, 0);
+        //send(gs_client, image_transfer, 100, 0);
         
-        Camera.grab();
-        Camera.retrieve(data, raspicam::RASPICAM_FORMAT_IGNORE);
+        //Camera.grab();
+        //Camera.retrieve(data, raspicam::RASPICAM_FORMAT_IGNORE);
+    
+        //printf("FRAME!\n");
+        //updateFrame(capture, data);
 
         // GSC - START
-        send(gs_client, data, 640 * 480 * 3, 0);
+        //send(gs_client, data, 640 * 480 * 3, 0);
       
         results = recv(new_socket, &numClassified, 4, MSG_DONTWAIT);
       } while (results <= 0);
 
+      send(gs_client, image_transfer, 100, 0);
+      send(gs_client, data, 640 * 480 * 3, 0);
       int *detection = (int *)malloc(48 * sizeof(char));
       
       printf("Num Results: %d\n", numClassified);
