@@ -33,22 +33,34 @@ using namespace cv;
 
 std::clock_t start;
 
+unsigned char * videoData;
+int currFrame = 0;
+
 void updateFrame(VideoCapture capture, unsigned char *data)
 {
-  int maxFrame = capture.get(7);
 
-  int currFrame = (int) (std::clock() - start) * 30 / CLOCKS_PER_SEC % maxFrame;
+  //int currFrame = ((int) (std::clock() - start) * 30 / CLOCKS_PER_SEC % (100));
+  currFrame = (currFrame+1)%100;
   printf("Current Frame: %d\n", currFrame);
 
-  capture.set(1, currFrame);
+  memcpy(data, videoData + 640*480*3*sizeof(uint8_t)*currFrame, 640*480*sizeof(uint8_t)*3);
+}
+
+void loadVideo(VideoCapture capture)
+{
+  videoData = (unsigned char *) malloc(640*480*3*sizeof(uint8_t)*100);
 
   Mat frame;
+  
+  capture.set(1, 50);
+  
+  for (int i = 0; i < 100; i++) {
+    capture >> frame;
 
-  capture >> frame;
+    cv::cvtColor(frame, frame, CV_BGR2RGB);
 
-  cv::cvtColor(frame, frame, CV_BGR2RGB);
-
-  memcpy(data, frame.ptr(0), frame.cols*frame.rows*sizeof(uint8_t)*3);
+    memcpy(videoData + frame.cols*frame.rows*sizeof(uint8_t)*3*i, frame.ptr(0), frame.cols*frame.rows*sizeof(uint8_t)*3);
+  }
 }
 
 int main(int argc, char const *argv[])
@@ -187,9 +199,11 @@ int main(int argc, char const *argv[])
   char *parameters = (char *)malloc(10);
   // GSC - END
 
+  VideoCapture capture("testvideo.mp4");    
+  loadVideo(capture); 
+  
   double duration;
   start = std::clock();
-  VideoCapture capture("testvideo.mp4");    
 
   while (1)
   {
@@ -244,16 +258,18 @@ int main(int argc, char const *argv[])
       int results = 0;
 
       do {
-        //send(gs_client, image_transfer, 100, 0);
         
         //Camera.grab();
         //Camera.retrieve(data, raspicam::RASPICAM_FORMAT_IGNORE);
     
-        //printf("FRAME!\n");
-        //updateFrame(capture, data);
+        printf("FRAME!\n");
+        updateFrame(capture, data);
 
         // GSC - START
-        //send(gs_client, data, 640 * 480 * 3, 0);
+        send(gs_client, image_transfer, 100, 0);
+        send(gs_client, data, 640 * 480 * 3, 0);
+      
+        usleep(50000);
       
         results = recv(new_socket, &numClassified, 4, MSG_DONTWAIT);
       } while (results <= 0);
