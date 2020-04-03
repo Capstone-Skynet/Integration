@@ -3507,10 +3507,10 @@ void extract_detections(int * sendData, image im, detection *dets, int num, floa
 
             strncpy(((char *) sendDataIter), labelstr, 32);
 
-            sendDataIter[8] = b.w * 416;
-            sendDataIter[9] = b.h * 416;
-            sendDataIter[10] = b.x * 416;
-            sendDataIter[11] = b.y * 416;
+            sendDataIter[8] = b.w * 640;
+            sendDataIter[9] = b.h * 640;
+            sendDataIter[10] = b.x * 640;
+            sendDataIter[11] = b.y * 640 - 80;
 
             sendDataIter += 12;
 
