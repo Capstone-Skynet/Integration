@@ -66,7 +66,6 @@ int main(int argc, char const *argv[])
     perror("listen");
     exit(EXIT_FAILURE);
   }
-  printf("TEST\n");
 
   int addrlen1 = sizeof(gs_addr);
   if ((gs_client = accept(gs_sock, (struct sockaddr *)&gs_addr,
@@ -176,7 +175,6 @@ int main(int argc, char const *argv[])
     send(gs_client, data, 640 * 480 * 3, 0);
     // GSC - END
 
-    printf("WAIT 1\n");
     for (int k = 0; k < 3; ++k)
     {
       for (int j = 0; j < 480; ++j)
@@ -193,10 +191,8 @@ int main(int argc, char const *argv[])
     //image im = load_image_stb(input_imgfn,3);
     image sized = letterbox_image(im, 416, 416);
 
-    printf("WAIT 2\n");
     if (ENABLE_ML)
     {
-      //save_image_png(sized, "test.png");
       send(new_socket, sized.data, (sized.h * sized.w * sized.c) * 4, 0);
     }
 
@@ -218,22 +214,17 @@ int main(int argc, char const *argv[])
       int results = 0;
 
       do {
-        printf("WAIT 3\n");
         send(gs_client, image_transfer, 100, 0);
         
         Camera.grab();
         Camera.retrieve(data, raspicam::RASPICAM_FORMAT_IGNORE);
 
         // GSC - START
-        printf("WAIT 4\n");
         send(gs_client, data, 640 * 480 * 3, 0);
       
-        printf("WAIT 5\n");
         results = recv(new_socket, &numClassified, 4, MSG_DONTWAIT);
-        printf("RESULTS: %d\n", results);
       } while (results <= 0);
 
-      printf("READ RESULTS\n");
       int *detection = (int *)malloc(48 * sizeof(char));
       
       printf("Num Results: %d\n", numClassified);
@@ -276,9 +267,7 @@ int main(int argc, char const *argv[])
       send(gs_client, result, 100, 0);
     }
 
-    printf("PARAM1\n");
     int parameter_bytes = read(gs_client, parameters, 10);
-    printf("PARAM2\n");
     if (parameter_bytes == 8)
     {
       printf("new threashold: %f\n", charArrToFloat(parameters));
