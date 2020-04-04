@@ -12,6 +12,9 @@ let MLDataParseRegex = /(?:Type|type)\s*:\s*([^,]+)\s*,\s*(?:Width|width)\s*:\s*
 // Set up connections when socket connects
 io.on('connection', (socket) => {
 
+  // Acknowlege connection (debug)
+  console.log('New connection');
+
   // Receiving image from Python program
   socket.on('PY_IMG_DATA', (imageData) => {
     socket.broadcast.emit('SRV_IMG_DATA', imageData);

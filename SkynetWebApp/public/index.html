@@ -179,9 +179,9 @@ a:hover { color: var(--link-hover-color); }
 					</li>
 					<li class="list-group-item">
 						<p>Model detection</p>
-						<input type="radio" id="rb1" name="mdetection" value="Pedestrian Only" onchange="model_detection_update2(this)">  
+						<input class='radio-detection-sel' type="radio" id="rb1" name="mdetection" value="Pedestrian Only" onchange="model_detection_update2(this)">  
 						&nbsp;<label for="rb1">Detect persons</label><br>
-						<input type="radio" id="rb2" name="mdetection" checked value="All Classes" checked onchange="model_detection_update2(this)">
+						<input class='radio-detection-sel' type="radio" id="rb2" name="mdetection" checked value="All Classes" checked onchange="model_detection_update2(this)">
 						&nbsp;<label for="rb2">Detect all classes</label><br>
 					</li>
 				</ul>
@@ -193,11 +193,11 @@ a:hover { color: var(--link-hover-color); }
 				<ul class="list-group">
 					<li class="list-group-item">
 						<p>Frame rate: <span id="canvas-fr-label">--</span></p>
-						<input id="canvas-fr-slider" class="setting-slider" type="range" min="1" max="30" value=15 step="1">
+						<input id="canvas-fr-slider" class="setting-slider" type="range" min="1" max="30" value=15 step="1" onchange="changeCanvasFPS(this.value)">
 					</li>
 					<li class="list-group-item">
 						<p>Bounding box opacity: <span id="canvas-bb-opacity-label">--</span></p>
-						<input id="canvas-fr-slider" class="setting-slider" type="range" min=0 max=1 value=1 step=0.1>
+						<input id="canvas-bb-opacity-slider" class="setting-slider" type="range" min=0 max=1 value=1 step=0.1 onchange="changeCanvasBBoxOpacity(this.value)">
 					</li>
 				</ul>
 			</section>
@@ -220,8 +220,10 @@ a:hover { color: var(--link-hover-color); }
 
 let cameraLayer, bboxLayer;
 let fps = 15;
-let cameraLayerTimeout = fps;
+let cameraLayerTimeoutCap = 20;
+let cameraLayerTimeout = cameraLayerTimeoutCap;
 let bboxClearFlag = false;
+let bboxOpacity = 1.0;
 
 // Globals
 let socket, receivedData = null;
@@ -233,6 +235,16 @@ function changeMLThreshold(slideAmount) {
 
 function model_detection_update2(option_obj) {
     socket.emit('WEB2SRV_detect_obj', [option_obj.value, "1"]);
+}
+
+function changeCanvasFPS(fps) {
+	frameRate(fps);
+	$('#canvas-fr-label').html(fps);
+}
+
+function changeCanvasBBoxOpacity(opacity) {
+	bboxOpacity = opacity;
+	$('#canvas-bb-opacity-label').html(opacity);
 }
 
 // Logging UI Functions
@@ -249,6 +261,12 @@ function clearLog() { $('#logbox').empty(); }
 // Entry
 $(document).ready(()=> {
 	initialize();
+
+	// Send the initialization settings to server upon start up
+	changeMLThreshold($('#threshold_slider').val());
+	model_detection_update2($('input.radio-detection-sel[checked]').get());
+	changeCanvasFPS($('#canvas-fr-slider').val());
+	changeCanvasBBoxOpacity($('#canvas-bb-opacity-slider').val());
 })
 
 function initialize() {
@@ -301,7 +319,11 @@ function draw() {
         noLoop();
     }
 
+	tint(255, 255);
     image(cameraLayer, 0, 0);
+
+	// Tint function will modify the layer opacity
+	tint(255, bboxOpacity * 255);
     image(bboxLayer, 0, 0);
 }
 
@@ -330,7 +352,7 @@ function cameraDataReceivedHandler(data) {
     });
 
     // reset timeout counter
-    cameraLayerTimeout = fps;
+    cameraLayerTimeout = cameraLayerTimeoutCap;
     loop();
 }
 </script>
