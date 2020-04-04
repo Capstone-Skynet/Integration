@@ -169,6 +169,19 @@ a:hover { color: var(--link-hover-color); }
 		<!-- Panel 2: controls panel -->
         <div class="col-md-3 mt-3">
 			<h3>Control Panel</h3>
+
+			<section>
+				<p class="setting-category">General Settings</p>
+				<ul class="list-group">
+					<li class="list-group-item">
+						<div class="btn-group mb-2" role="group">
+							<button id="gen-start" type="button" class="btn btn-sm btn-outline-success" onclick="onGenButtonStart()">Start</button>
+							<button id="gen-stop" type="button" class="btn btn-sm btn-outline-danger" disabled onclick="onGenButtonStop()">Stop</button>
+							<button id="gen-refresh" type="button" class="btn btn-sm btn-outline-primary" onclick="onGenButtonRefresh()">Refresh</button>
+						</div>
+					</li>
+				</ul>
+			</section>
 			
 			<section>
 				<p class="setting-category">Algorthm Settings</p>
@@ -229,6 +242,41 @@ let bboxOpacity = 1.0;
 let socket, receivedData = null;
 
 // Front end UI handlers
+function onGenButtonStart() {
+	let $startBtn = $('#gen-start');
+	let $stopBtn = $('#gen-stop');
+
+	if (!$startBtn.attr('disabled')) {
+		$startBtn.attr('disabled', true);
+	}
+
+	if ($stopBtn.attr('disabled')) {
+		$stopBtn.attr('disabled', false);
+	}
+
+	$startBtn.html('Running');
+}
+
+function onGenButtonStop() {
+	let $startBtn = $('#gen-start');
+	let $stopBtn = $('#gen-stop');
+
+	if ($startBtn.attr('disabled')) {
+		$startBtn.attr('disabled', false);
+	}
+
+	if (!$stopBtn.attr('disabled')) {
+		$stopBtn.attr('disabled', true);
+	}
+
+	$startBtn.html('Start');
+}
+
+function onGenButtonRefresh() {
+	initSignals();
+}
+
+
 function changeMLThreshold(slideAmount) {
 	socket.emit('WEB2SRV_threshold_val', slideAmount.toString())
 }
@@ -261,13 +309,16 @@ function clearLog() { $('#logbox').empty(); }
 // Entry
 $(document).ready(()=> {
 	initialize();
+	initSignals();
+});
 
+function initSignals() {
 	// Send the initialization settings to server upon start up
 	changeMLThreshold($('#threshold_slider').val());
 	model_detection_update2($('input.radio-detection-sel[checked]').get());
 	changeCanvasFPS($('#canvas-fr-slider').val());
 	changeCanvasBBoxOpacity($('#canvas-bb-opacity-slider').val());
-})
+}
 
 function initialize() {
 	socket = io.connect('localhost');
