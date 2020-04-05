@@ -80,6 +80,8 @@ int main( int argc, char *argv[])
     network *net = load_network("yolov2.cfg", "yolov2.weights", 0);
     set_batch_network(net, 1);
 
+    int firstRun = 1;
+
     while(1) {
         fetchImage(sock, sized);
 
@@ -89,15 +91,15 @@ int main( int argc, char *argv[])
 
         int i;
         float nms=.2;
-        float thresh = .6;
-        float hier_thresh = .6;
+        float thresh = .2;
+        float hier_thresh = .2;
         int nboxes = 0;
 
         detection *dets;
 
         time = what_time_is_it_now();
-        yolov2_hls_ps(net, X,WEIGHT_BASE,BETA_BASE,MEM_BASE);
-        printf("Predicted in %f seconds.!\n",what_time_is_it_now()-time);
+        yolov2_hls_ps(firstRun, net, X,WEIGHT_BASE,BETA_BASE,MEM_BASE);
+        firstRun = 0;
 
         dets = get_network_boxes(net, sized.w, sized.h, thresh, hier_thresh, 0, 1, &nboxes);
         if (nms) do_nms_sort(dets, nboxes, l.classes, nms);

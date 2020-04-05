@@ -3774,9 +3774,10 @@ int YOLO2_FPGA(int In_Address,int Out_Address,int Weight_offset,int Beta_offset,
 ////////////////////////////////////////////////////////PL v3 end
 
 
-void yolov2_hls_ps(network *net, float *input,unsigned int WEIGHT_BASE,unsigned int BETA_BASE,unsigned int MEM_BASE)
+void yolov2_hls_ps(int firstRun, network *net, float *input,unsigned int WEIGHT_BASE,unsigned int BETA_BASE,unsigned int MEM_BASE)
 {
-	int x;
+	
+        int x;
 
 	network orig = *net;
 	net->input = input;
@@ -3791,13 +3792,15 @@ void yolov2_hls_ps(network *net, float *input,unsigned int WEIGHT_BASE,unsigned 
 
 	double time1,time2;
 
-	time1 = what_time_is_it_now();
-	copy_file2mem("weightsv2_comb_reorg_ap16.bin",(203767168)/2,WEIGHT_BASE);//->C253D80
-	printf("yolov2_w copy ok\n");
-	copy_file2mem("biasv2_comb_ap16.bin",(43044+4)/2,BETA_BASE);//->C268724 203812864 = C25F000
-	printf("yolov2_b copy ok\n");
-	time2 = what_time_is_it_now();
-	printf("Predicted in %f seconds.\n",time2 - time1);
+        if (firstRun) {
+            time1 = what_time_is_it_now();
+            copy_file2mem("weightsv2_comb_reorg_ap16.bin",(203767168)/2,WEIGHT_BASE);//->C253D80
+            printf("yolov2_w copy ok\n");
+            copy_file2mem("biasv2_comb_ap16.bin",(43044+4)/2,BETA_BASE);//->C268724 203812864 = C25F000
+            printf("yolov2_b copy ok\n");
+            time2 = what_time_is_it_now();
+            printf("Predicted in %f seconds.\n",time2 - time1);
+        }
 
 	float *region_buf = (float *)calloc(13*13*432,sizeof(float));
 	if(!region_buf) printf("region_buf calloc fail\n");
