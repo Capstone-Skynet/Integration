@@ -11,16 +11,31 @@
 #include <unistd.h>
 #define PORT 8080 
 
-void fetchImage(int socket, image img)
+float fetchImage(int socket, image img)
 {
     int bytesRead = 0;
     int result;
 
     int imageLength = 2076672;
+    float threshold = 0.2;
+
+    //First, read threshold value
+    do {
+        printf("Fetching threshold!\n");
+        result = read(socket, &threshold, 4);
+
+        printf("Result: %d\n", result);
+        if(result < 0) {
+            printf("ERROR %d!\n", errno);
+            exit(-1);
+        }
+
+    } while (result == 0);
+
+    printf("Threshold: %f\n", threshold);
 
     bytesRead = 0;
     while (bytesRead < imageLength) {
-        printf("%d bytes fetched!\n", bytesRead);
         result = read(socket, ((char *) img.data) + bytesRead, imageLength - bytesRead);
 
         if(result < 1) {
@@ -30,6 +45,8 @@ void fetchImage(int socket, image img)
 
         bytesRead += result;
     }
+
+    return threshold;
 }
     
 
@@ -80,24 +97,27 @@ int main( int argc, char *argv[])
     network *net = load_network("yolov2.cfg", "yolov2.weights", 0);
     set_batch_network(net, 1);
 
+    int firstRun = 1;
+    float threshold = 0.2;
+
     while(1) {
-        fetchImage(sock, sized);
+        threshold = fetchImage(sock, sized);
 
         double time;
         layer l = net->layers[net->n-1];
         float *X = sized.data;
 
         int i;
-        float nms=.2;
-        float thresh = .6;
-        float hier_thresh = .6;
+        float nms = threshold;
+        float thresh = threshold;
+        float hier_thresh = threshold;
         int nboxes = 0;
 
         detection *dets;
 
         time = what_time_is_it_now();
-        yolov2_hls_ps(net, X,WEIGHT_BASE,BETA_BASE,MEM_BASE);
-        printf("Predicted in %f seconds.!\n",what_time_is_it_now()-time);
+        yolov2_hls_ps(firstRun, net, X,WEIGHT_BASE,BETA_BASE,MEM_BASE);
+        firstRun = 0;
 
         dets = get_network_boxes(net, sized.w, sized.h, thresh, hier_thresh, 0, 1, &nboxes);
         if (nms) do_nms_sort(dets, nboxes, l.classes, nms);
