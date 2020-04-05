@@ -20,6 +20,8 @@
 #define PYTHON_CLIENT_PORT 8000
 
 #define NUM_VIDEOFRAMES 320
+
+#define USE_TAPEDELAY 0
 #define LATENCY_OFFSET 30
 
 float charArrToFloat(const char *fc)
@@ -258,13 +260,15 @@ int main(int argc, char const *argv[])
 
         if(!useVideo) {
           Camera.grab();
-          Camera.retrieve(data, raspicam::RASPICAM_FORMAT_IGNORE);
+          Camera.retrieve(data + (currOffset*640*480*3), raspicam::RASPICAM_FORMAT_IGNORE);
         }
         else {
           updateFrame(capture, data + (currOffset*640*480*3));
-
-          currOffset = (currOffset + 1) % LATENCY_OFFSET;
           usleep(50000);
+        }
+        
+        if(USE_TAPEDELAY) {
+          currOffset = (currOffset + 1) % LATENCY_OFFSET;
         }
       
         results = recv(new_socket, &numClassified, 4, MSG_DONTWAIT);
