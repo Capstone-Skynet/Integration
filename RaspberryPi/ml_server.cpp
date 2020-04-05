@@ -19,6 +19,9 @@
 #define PORT 8080
 #define PYTHON_CLIENT_PORT 8000
 
+#define NUM_VIDEOFRAMES 320
+#define LATENCY_OFFSET 30
+
 float charArrToFloat(const char *fc)
 {
   std::string fs(fc);
@@ -38,9 +41,7 @@ int currFrame = 0;
 
 void updateFrame(VideoCapture capture, unsigned char *data)
 {
-
-  //int currFrame = ((int) (std::clock() - start) * 30 / CLOCKS_PER_SEC % (100));
-  currFrame = (currFrame+1)%100;
+  currFrame = (currFrame+1)%NUM_VIDEOFRAMES;
   printf("Current Frame: %d\n", currFrame);
 
   memcpy(data, videoData + 640*480*3*sizeof(uint8_t)*currFrame, 640*480*sizeof(uint8_t)*3);
@@ -48,13 +49,13 @@ void updateFrame(VideoCapture capture, unsigned char *data)
 
 void loadVideo(VideoCapture capture)
 {
-  videoData = (unsigned char *) malloc(640*480*3*sizeof(uint8_t)*100);
+  videoData = (unsigned char *) malloc(640*480*3*sizeof(uint8_t)*NUM_VIDEOFRAMES);
 
   Mat frame;
   
-  capture.set(1, 50);
-  
-  for (int i = 0; i < 100; i++) {
+  capture.set(1, 0);
+ 
+  for (int i = 0; i < NUM_VIDEOFRAMES; i++) {
     capture >> frame;
 
     cv::cvtColor(frame, frame, CV_BGR2RGB);
@@ -187,17 +188,16 @@ int main(int argc, char const *argv[])
   usleep(3000000);
 
   //Begin Transactional Communications
-  //  while(1) {
-
   //strncpy(input_imgfn,"input_image.jpg", 256);
 
-  unsigned char *data = (unsigned char *)malloc(640 * 480 * 3);
+  unsigned char *data = (unsigned char *)malloc(640 * 480 * 3 * LATENCY_OFFSET);
+  unsigned char *ml_data = (unsigned char *)malloc(640 * 480 * 3);
+
+  int currOffset = 0;
 
   image im = make_image(640, 480, 3);
 
-  // GSC - START
   char *parameters = (char *)malloc(10);
-  // GSC - END
 
   VideoCapture capture("testvideo.mp4");    
   loadVideo(capture); 
@@ -207,17 +207,10 @@ int main(int argc, char const *argv[])
 
   while (1)
   {
-
-    // GSC - START
-    // GSC - END
-
     Camera.grab();
-    Camera.retrieve(data, raspicam::RASPICAM_FORMAT_IGNORE);
+    Camera.retrieve(ml_data, raspicam::RASPICAM_FORMAT_IGNORE);
 
-    updateFrame(capture, data);
-
-    // GSC - START
-    // GSC - END
+    updateFrame(capture, ml_data);
 
     for (int k = 0; k < 3; ++k)
     {
@@ -227,7 +220,7 @@ int main(int argc, char const *argv[])
         {
           int dst_index = i + 640 * j + 640 * 480 * k;
           int src_index = k + 3 * i + 3 * 640 * j;
-          im.data[dst_index] = (float)data[src_index] / 255.;
+          im.data[dst_index] = (float)ml_data[src_index] / 255.;
         }
       }
     }
@@ -239,10 +232,6 @@ int main(int argc, char const *argv[])
     {
       send(new_socket, sized.data, (sized.h * sized.w * sized.c) * 4, 0);
     }
-
-    // GSC - END
-
-    //Read Results:
 
     int bytesRead = 0;
     
@@ -258,24 +247,24 @@ int main(int argc, char const *argv[])
       int results = 0;
 
       do {
+        send(gs_client, image_transfer, 100, 0);
+        send(gs_client, data + (currOffset*640*480*3), 640 * 480 * 3, 0);
         
         //Camera.grab();
         //Camera.retrieve(data, raspicam::RASPICAM_FORMAT_IGNORE);
     
         printf("FRAME!\n");
-        updateFrame(capture, data);
+        updateFrame(capture, data + (currOffset*640*480*3));
 
-        // GSC - START
-        send(gs_client, image_transfer, 100, 0);
-        send(gs_client, data, 640 * 480 * 3, 0);
+        currOffset = (currOffset + 1) % LATENCY_OFFSET;
       
         usleep(50000);
       
         results = recv(new_socket, &numClassified, 4, MSG_DONTWAIT);
       } while (results <= 0);
 
-      send(gs_client, image_transfer, 100, 0);
-      send(gs_client, data, 640 * 480 * 3, 0);
+      //send(gs_client, image_transfer, 100, 0);
+      //send(gs_client, data, 640 * 480 * 3, 0);
       int *detection = (int *)malloc(48 * sizeof(char));
       
       printf("Num Results: %d\n", numClassified);
@@ -321,14 +310,14 @@ int main(int argc, char const *argv[])
     int parameter_bytes = read(gs_client, parameters, 10);
     if (parameter_bytes == 8)
     {
-      printf("new threashold: %f\n", charArrToFloat(parameters));
+      //printf("new threashold: %f\n", charArrToFloat(parameters));
       if (parameters[7] == 'T')
       {
-        printf("Pedestrian only\n");
+        //printf("Pedestrian only\n");
       }
       else if (parameters[7] == 'F')
       {
-        printf("All classes\n");
+        //printf("All classes\n");
       }
     }
     // GSC - END

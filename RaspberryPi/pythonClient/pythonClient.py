@@ -11,7 +11,7 @@ import socket
 # SETUP: Socket IO connections
 
 # MODIFY THIS
-GROUND_STATION_URL = 'http://192.168.137.6:80'
+GROUND_STATION_URL = 'http://192.168.137.7:80'
 
 CPP_SERVER_HOST = 'localhost'
 CPP_SERVER_PORT = 8000
