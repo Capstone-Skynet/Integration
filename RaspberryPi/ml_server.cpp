@@ -9,9 +9,20 @@
 #include <fstream>
 #include <iostream>
 #include <raspicam/raspicam.h>
+#include <fcntl.h>
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include "opencv2/imgproc/imgproc.hpp"
 #include "imagesupport.h"
+#include <cstdio>
+#include <ctime>
 #define PORT 8080
 #define PYTHON_CLIENT_PORT 8000
+
+#define NUM_VIDEOFRAMES 320
+
+#define USE_TAPEDELAY 0
+#define LATENCY_OFFSET 30
 
 float charArrToFloat(const char *fc)
 {
@@ -20,20 +31,54 @@ float charArrToFloat(const char *fc)
   return f;
 }
 
-#define ENABLE_ML 0
+#define ENABLE_ML 1
 
 using namespace std;
+using namespace cv;
+
+unsigned char * videoData;
+int currFrame = 0;
+
+float ml_threshold = 0.25;
+
+/* Grabs the next frame from the (pre-loaded) video */
+void updateFrame(VideoCapture capture, unsigned char *data)
+{
+  currFrame = (currFrame+1)%NUM_VIDEOFRAMES;
+  printf("Current Frame: %d\n", currFrame);
+
+  memcpy(data, videoData + 640*480*3*sizeof(uint8_t)*currFrame, 640*480*sizeof(uint8_t)*3);
+}
+
+/* Loads the video into memory (converting to the same format as webcam footage) */
+void loadVideo(VideoCapture capture)
+{
+  videoData = (unsigned char *) malloc(640*480*3*sizeof(uint8_t)*NUM_VIDEOFRAMES);
+
+  Mat frame;
+  
+  capture.set(1, 0);
+ 
+  for (int i = 0; i < NUM_VIDEOFRAMES; i++) {
+    capture >> frame;
+
+    cv::cvtColor(frame, frame, CV_BGR2RGB);
+
+    memcpy(videoData + frame.cols*frame.rows*sizeof(uint8_t)*3*i, frame.ptr(0), frame.cols*frame.rows*sizeof(uint8_t)*3);
+  }
+}
 
 int main(int argc, char const *argv[])
 {
-  //GSC - START
+ 
+  // Initialize socket communication to Python helper 
   int gs_sock = 0, gs_client;
   struct sockaddr_in gs_addr;
 
   int opt = 1;
 
-  const char *image_transfer = "IMAGE";
-  const char *result_transfer = "RESULT";
+  const char image_transfer[100] = "IMAGE";
+  const char result_transfer[100] = "RESULT";
 
   if ((gs_sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
   {
@@ -72,16 +117,17 @@ int main(int argc, char const *argv[])
     perror("accept");
     exit(EXIT_FAILURE);
   }
-  //GSC - END
 
+  // Initialize socket to PLB
   int server_fd, new_socket, valread;
   struct sockaddr_in address;
 
   int addrlen = sizeof(address);
   char buffer[1024] = {0};
-  char *hello = "Hello from server";
   char buff[256];
   char *input_imgfn = buff;
+
+  printf("Opening ML socket...\n");
 
   if (ENABLE_ML)
   {
@@ -125,10 +171,12 @@ int main(int argc, char const *argv[])
     }
   }
 
-  raspicam::RaspiCam Camera;
 
   //Setup Camera
-  Camera.setFormat(raspicam::RASPICAM_FORMAT_RGB);
+  raspicam::RaspiCam Camera;
+
+  Camera.setFormat(raspicam::RASPICAM_FORMAT_BGR);
+  Camera.setExposure(raspicam::RASPICAM_EXPOSURE_AUTO);
   Camera.setCaptureSize(640, 480);
 
   printf("Opening Camera...\n");
@@ -142,31 +190,35 @@ int main(int argc, char const *argv[])
   usleep(3000000);
 
   //Begin Transactional Communications
-  //  while(1) {
 
-  //strncpy(input_imgfn,"input_image.jpg", 256);
+  unsigned char *data = (unsigned char *)malloc(640 * 480 * 3 * LATENCY_OFFSET);
+  unsigned char *ml_data = (unsigned char *)malloc(640 * 480 * 3);
 
-  unsigned char *data = (unsigned char *)malloc(640 * 480 * 3);
+  int currOffset = 0;
 
   image im = make_image(640, 480, 3);
 
-  // GSC - START
   char *parameters = (char *)malloc(10);
-  // GSC - END
+
+  /* Setup video acquisition, if desired */
+  int useVideo = 0;
+  char videoName[100];
+  VideoCapture capture;
+  if (argc > 1) {
+    useVideo = 1;
+    VideoCapture capture(videoName);    
+    loadVideo(capture);
+  } 
 
   while (1)
   {
-
-    // GSC - START
-    send(gs_client, image_transfer, strlen(image_transfer), 0);
-    // GSC - END
-
-    Camera.grab();
-    Camera.retrieve(data, raspicam::RASPICAM_FORMAT_IGNORE);
-
-    // GSC - START
-    send(gs_client, data, 640 * 480 * 3, 0);
-    // GSC - END
+    if(!useVideo) {
+      Camera.grab();
+      Camera.retrieve(ml_data, raspicam::RASPICAM_FORMAT_IGNORE);
+    }
+    else {
+      updateFrame(capture, ml_data);
+    }
 
     for (int k = 0; k < 3; ++k)
     {
@@ -176,42 +228,62 @@ int main(int argc, char const *argv[])
         {
           int dst_index = i + 640 * j + 640 * 480 * k;
           int src_index = k + 3 * i + 3 * 640 * j;
-          im.data[dst_index] = (float)data[src_index] / 255.;
+          im.data[dst_index] = (float)ml_data[src_index] / 255.;
         }
       }
     }
 
-    //image im = load_image_stb(input_imgfn,3);
     image sized = letterbox_image(im, 416, 416);
 
     if (ENABLE_ML)
     {
-      save_image_png(sized, "test.png");
+      send(new_socket, &ml_threshold, 4, 0);
       send(new_socket, sized.data, (sized.h * sized.w * sized.c) * 4, 0);
     }
 
-    // GSC - START
-    send(gs_client, result_transfer, strlen(result_transfer), 0);
-    // GSC - END
-
-    //Read Results:
-
     int bytesRead = 0;
+    
+    char result[100];
 
     //Initially read 4 bytes (Depending on the value recieved here, we might
     //have to read more if we've classified something!
 
     if (ENABLE_ML)
     {
-      int numClassified;
+      int numClassified = 0;
 
-      int results;
-      results = read(new_socket, &numClassified, 4);
+      int results = 0;
 
+      do { /* While we're waiting for results... */
+        send(gs_client, image_transfer, 100, 0);
+        send(gs_client, data + (currOffset*640*480*3), 640 * 480 * 3, 0); 
+
+        if(!useVideo) {
+          Camera.grab();
+          Camera.retrieve(data + (currOffset*640*480*3), raspicam::RASPICAM_FORMAT_IGNORE);
+        }
+        else {
+          updateFrame(capture, data + (currOffset*640*480*3));
+          usleep(50000);
+        }
+        
+        if(USE_TAPEDELAY) {
+          currOffset = (currOffset + 1) % LATENCY_OFFSET;
+        }
+      
+        results = recv(new_socket, &numClassified, 4, MSG_DONTWAIT);
+      } while (results <= 0);
+
+      // We've gotten results!
       int *detection = (int *)malloc(48 * sizeof(char));
-
+      
       printf("Num Results: %d\n", numClassified);
+      
+      send(gs_client, result_transfer, 100, 0);
+      sprintf(result, "%d", numClassified);  
+      send(gs_client, result, 100, 0);
 
+      /* For each classified result */
       for (int i = 0; i < numClassified; i++)
       {
         bytesRead = 0;
@@ -227,37 +299,37 @@ int main(int argc, char const *argv[])
 
           bytesRead += results;
         }
-        printf("Type: %.*s, Width: %d, Height: %d, X: %d, Y: %d\n", 32, ((char *)detection), detection[8], detection[9], detection[10], detection[11]);
+        sprintf(result, "Type: %.*s, Width: %d, Height: %d, X: %d, Y: %d", 32, ((char *)detection), detection[8], detection[9], detection[10], detection[11]);
+        send(gs_client, result, 100, 0);
       }
     }
-    else
+    else /* Dummy data for testing */
     {
       // Manually add some delay to simulation ml delay
       usleep(500000);
+      send(gs_client, result_transfer, 100, 0);
+      char *type = "person";
+      int height = rand() % 100;
+      int width = rand() % 100;
+      int x = rand() % 100;
+      int y = rand() % 100;
+      sprintf(result, "Type: %.*s, Width: %d, Height: %d, X: %d, Y: %d", 32, type, height, width, x, y);
+      send(gs_client, result, 100, 0);
     }
 
-    // GSC - START
-    char result[100];
-    char *type = "person";
-    int height = rand() % 100;
-    int width = rand() % 100;
-    int x = rand() % 100;
-    int y = rand() % 100;
-
-    sprintf(result, "Type: %.*s, Width: %d, Height: %d, X: %d, Y: %d", 32, type, height, width, x, y);
-    send(gs_client, result, strlen(result), 0);
-
+    /* Read paramaters to pass onto PLB */
     int parameter_bytes = read(gs_client, parameters, 10);
     if (parameter_bytes == 8)
     {
-      printf("new threashold: %f\n", charArrToFloat(parameters));
+      printf("Threshold: %f\n", charArrToFloat(parameters));
+      ml_threshold = charArrToFloat(parameters);
       if (parameters[7] == 'T')
       {
-        printf("Pedestrian only\n");
+        //printf("Pedestrian only\n");
       }
       else if (parameters[7] == 'F')
       {
-        printf("All classes\n");
+        //printf("All classes\n");
       }
     }
     // GSC - END

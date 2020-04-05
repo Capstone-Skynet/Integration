@@ -6,6 +6,7 @@ import socketio
 import sys
 import time
 import threading
+import random
 
 # SETUP: Argument Setup
 arg_parser = argparse.ArgumentParser(description="Camera test program to connect to Skynet Webapp via socket.io")
@@ -51,6 +52,9 @@ def main():
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, int(CAMERA_RESOLUTION_SCALE * CAMERA_RESOLUTION_HEIGHT))
     print(f'Setting camera resolution to {cap.get(cv2.CAP_PROP_FRAME_WIDTH)}, {cap.get(cv2.CAP_PROP_FRAME_HEIGHT)}')
 
+    client.emit('PY_ML_CLEAR', 0)
+
+    i = 0
     while True:
         # Capture frame-by-frame
         _, frame = cap.read()
@@ -59,6 +63,12 @@ def main():
         _, buffer = cv2.imencode('.jpg', frame)
         frame_data = str(base64.b64encode(buffer))
         client.emit(SIGNAL_SEND_DATA, frame_data[2:len(frame_data) - 1])
+        
+        # Test BBox
+        i += 1
+        client.emit('PY_ML_RESULT', f'Type: person, Width: 50, Height: 60, X: {random.randint(0, 600)}, Y: {random.randint(0, 400)}')
+        if (i % 30 == 0):
+            client.emit('PY_ML_CLEAR', 0)
 
         if CAMERA_FRAME_DELAY > 0:
             time.sleep(CAMERA_FRAME_DELAY)
