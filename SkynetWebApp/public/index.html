@@ -171,14 +171,14 @@ a:hover { color: var(--link-hover-color); }
 			<h3>Control Panel</h3>
 			
 			<section>
-				<p class="setting-category">Algorthm Settings</p>
+				<p class="setting-category">Algorithm Settings</p>
 				<ul class="list-group">
 					<li class="list-group-item">
-						<p>Sensitivity: <span id="curr_threshold_val">--</span></p>
-						<input id="threshold_slider" class="setting-slider" type="range" min="0" max="1" value=0.5 step="0.01" onchange="changeMLThreshold(this.value)">
+						<p>Model Threshold: <span id="curr_threshold_val">--</span></p>
+						<input id="threshold_slider" class="setting-slider" type="range" min="0" max="1" value="0.2" step="0.01" onchange="changeMLThreshold(this.value)">
 					</li>
 					<li class="list-group-item">
-						<p>Model detection</p>
+						<p>Model Detection</p>
 						<input type="radio" id="rb1" name="mdetection" value="Pedestrian Only" onchange="model_detection_update2(this)">  
 						&nbsp;<label for="rb1">Detect persons</label><br>
 						<input type="radio" id="rb2" name="mdetection" checked value="All Classes" checked onchange="model_detection_update2(this)">
@@ -192,11 +192,7 @@ a:hover { color: var(--link-hover-color); }
 				<p class="setting-category">Canvas Settings</p>
 				<ul class="list-group">
 					<li class="list-group-item">
-						<p>Frame rate: <span id="canvas-fr-label">--</span></p>
-						<input id="canvas-fr-slider" class="setting-slider" type="range" min="1" max="30" value=15 step="1">
-					</li>
-					<li class="list-group-item">
-						<p>Bounding box opacity: <span id="canvas-bb-opacity-label">--</span></p>
+						<p>Bounding Box Opacity: <span id="canvas-bb-opacity-label">--</span></p>
 						<input id="canvas-fr-slider" class="setting-slider" type="range" min=0 max=1 value=1 step=0.1>
 					</li>
 				</ul>
@@ -261,7 +257,7 @@ function initialize() {
     socket.on('SRV_ML_RESULT', (bboxData) => {
         bboxLayer.noFill();
         bboxLayer.stroke(0, 255, 0);
-        bboxLayer.rect(bboxData.x, bboxData.y, bboxData.w, bboxData.h);
+        bboxLayer.rect(bboxData.x-bboxData.w/2.0, bboxData.y-bboxData.h/2.0, bboxData.w, bboxData.h);
         bboxLayer.fill(0, 255, 0);
         bboxLayer.noStroke();
         bboxLayer.textAlign(LEFT, BOTTOM);
@@ -326,7 +322,6 @@ function cameraDataReceivedHandler(data) {
         cameraLayer.stroke(0);
         cameraLayer.fill(255);
         cameraLayer.textAlign(LEFT, TOP);
-        cameraLayer.text("Live", 10, 40);
     });
 
     // reset timeout counter
