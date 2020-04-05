@@ -11,13 +11,14 @@ import socket
 # SETUP: Socket IO connections
 
 # MODIFY THIS
-GROUND_STATION_URL = 'http://192.168.137.2:80'
+GROUND_STATION_URL = 'http://192.168.137.7:80'
 
 CPP_SERVER_HOST = 'localhost'
 CPP_SERVER_PORT = 8000
 
 SIGNAL_SEND_DATA = 'PY_IMG_DATA'
 SIGNAL_SEND_RESULT = 'PY_ML_RESULT'
+SIGNAL_CLEAR_RESULT = 'PY_ML_CLEAR'
 
 SIGNAL_RECEIVE_THRESHOLD = 'gs_threshold'
 SIGNAL_RECEIVE_MODE = 'gs_mode'
@@ -65,8 +66,6 @@ def receive_image(socket):
 
 def sendImg(receiveBytes):
     
-    print("sending image")
-    
     # formatting array
     data = np.frombuffer(receiveBytes, dtype=np.uint8)
     data.shape= (480,640,3)
@@ -84,7 +83,12 @@ def sendImg(receiveBytes):
 
 def sendResult(result):
     print("sending result")
+    print(result)
     socketio_client.emit(SIGNAL_SEND_RESULT, result)
+
+def sendClear():
+    print("sending clear")
+    socketio_client.emit(SIGNAL_CLEAR_RESULT, None)
 
 @socketio_client.on(SIGNAL_RECEIVE_THRESHOLD)
 def on_message(data):
@@ -122,29 +126,21 @@ if __name__ == '__main__':
     
     while(True):
         try:
-            print("LOOP")
             cmd = receive_str(tcp_socket)
-            print(cmd)
 
             if cmd == 'IMAGE':
-                print("IMG_RECV")
                 frameData = receive_image(tcp_socket)
-            
-                print(len(frameData))
             
                 if frameData != None:
                     sendImg(bytes(frameData))
             
             elif cmd == 'RESULT':
-                print("RES_RECV")
                 numResult = receive_str(tcp_socket)
-           
-                result = 'Result: \n'
+
+                sendClear()
 
                 for i in range(int(numResult)):
-                    result += receive_str(tcp_socket) + '\n'
-
-                sendResult(result)
+                    sendResult(receive_str(tcp_socket))
                 
                 send_parameters(tcp_socket)
 

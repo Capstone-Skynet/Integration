@@ -200,7 +200,7 @@ a:hover { color: var(--link-hover-color); }
 				</section>
 				
 				<section>
-					<p class="setting-category">Algorthm Settings</p>
+					<p class="setting-category">Algorithm Settings</p>
 					<ul class="list-group">
 						<li class="list-group-item">
 							<p>Sensitivity: <span id="curr_threshold_val">--</span></p>
@@ -338,7 +338,7 @@ function initialize() {
     socket.on('SRV_ML_RESULT', (bboxData) => {
         bboxLayer.noFill();
         bboxLayer.stroke(0, 255, 0);
-        bboxLayer.rect(bboxData.x, bboxData.y, bboxData.w, bboxData.h);
+        bboxLayer.rect(bboxData.x-bboxData.w/2.0, bboxData.y-bboxData.h/2.0, bboxData.w, bboxData.h);
         bboxLayer.fill(0, 255, 0);
         bboxLayer.noStroke();
         bboxLayer.textAlign(LEFT, BOTTOM);
@@ -407,7 +407,6 @@ function cameraDataReceivedHandler(data) {
         cameraLayer.stroke(0);
         cameraLayer.fill(255);
         cameraLayer.textAlign(LEFT, TOP);
-        cameraLayer.text("Live", 10, 40);
     });
 
     // reset timeout counter

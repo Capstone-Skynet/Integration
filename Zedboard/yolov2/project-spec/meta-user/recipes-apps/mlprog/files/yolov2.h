@@ -3507,10 +3507,10 @@ void extract_detections(int * sendData, image im, detection *dets, int num, floa
 
             strncpy(((char *) sendDataIter), labelstr, 32);
 
-            sendDataIter[8] = b.w * 416;
-            sendDataIter[9] = b.h * 416;
-            sendDataIter[10] = b.x * 416;
-            sendDataIter[11] = b.y * 416;
+            sendDataIter[8] = b.w * 640;
+            sendDataIter[9] = b.h * 640;
+            sendDataIter[10] = b.x * 640;
+            sendDataIter[11] = b.y * 640 - 80;
 
             sendDataIter += 12;
 
@@ -3774,9 +3774,10 @@ int YOLO2_FPGA(int In_Address,int Out_Address,int Weight_offset,int Beta_offset,
 ////////////////////////////////////////////////////////PL v3 end
 
 
-void yolov2_hls_ps(network *net, float *input,unsigned int WEIGHT_BASE,unsigned int BETA_BASE,unsigned int MEM_BASE)
+void yolov2_hls_ps(int firstRun, network *net, float *input,unsigned int WEIGHT_BASE,unsigned int BETA_BASE,unsigned int MEM_BASE)
 {
-	int x;
+	
+        int x;
 
 	network orig = *net;
 	net->input = input;
@@ -3791,14 +3792,17 @@ void yolov2_hls_ps(network *net, float *input,unsigned int WEIGHT_BASE,unsigned 
 
 	double time1,time2;
 
-	time1 = what_time_is_it_now();
-	copy_file2mem("weightsv2_comb_reorg_ap16.bin",(203767168)/2,WEIGHT_BASE);//->C253D80
-	printf("yolov2_w copy ok\n");
-	copy_file2mem("biasv2_comb_ap16.bin",(43044+4)/2,BETA_BASE);//->C268724 203812864 = C25F000
-	printf("yolov2_b copy ok\n");
-	time2 = what_time_is_it_now();
-	printf("Predicted in %f seconds.\n",time2 - time1);
+        if (firstRun) {
+            time1 = what_time_is_it_now();
+            copy_file2mem("weightsv2_comb_reorg_ap16.bin",(203767168)/2,WEIGHT_BASE);//->C253D80
+            printf("yolov2_w copy ok\n");
+            copy_file2mem("biasv2_comb_ap16.bin",(43044+4)/2,BETA_BASE);//->C268724 203812864 = C25F000
+            printf("yolov2_b copy ok\n");
+            time2 = what_time_is_it_now();
+            printf("Predicted in %f seconds.\n",time2 - time1);
+        }
 
+        time1 = what_time_is_it_now();
 	float *region_buf = (float *)calloc(13*13*432,sizeof(float));
 	if(!region_buf) printf("region_buf calloc fail\n");
 
@@ -3827,25 +3831,15 @@ void yolov2_hls_ps(network *net, float *input,unsigned int WEIGHT_BASE,unsigned 
 	else
 		inputQ[20] = inputQ[21];
 
-
-	for(x=0;x<QNUM+1;x++)
-		printf("[%2d inputQ]=%2d\n",x,inputQ[x]);
-
 	Qin = fopen("weightsv2_comb_reorg_ap16_maxQ_23.bin","rb");
 	if(!Qin) file_error("Qin error 2\n");
 	fread(weightQ,sizeof(int),QNUM,Qin);
 	fclose(Qin);
 
-	for(x=0;x<QNUM;x++)
-		printf("[%2d weightQ]=%2d\n",x,weightQ[x]);
-
 	Qin = fopen("biasv2_comb_ap16_maxQ_23.bin","rb");
 	if(!Qin) file_error("Qin error 4\n");
 	fread(betaQ,sizeof(int),QNUM,Qin);
 	fclose(Qin);
-
-	for(x=0;x<QNUM;x++)
-		printf("[%2d betaQ]=%2d\n",x,betaQ[x]);
 
 	const double LastLayerOutputPara = pow(2.0,-inputQ[23]);
 /////////////////////
@@ -3864,6 +3858,8 @@ void yolov2_hls_ps(network *net, float *input,unsigned int WEIGHT_BASE,unsigned 
 	short current_in,next_in;
 	bool NextPixelInFlag = true;
 	int InputPixelOffset = 0;
+        time2 = what_time_is_it_now();
+        //printf("PREAMBLE in %f seconds.\n",time2 - time1);
 	for(x=0;x<416*416*3;x++)//1st Layer input Q14
 	{
 		if(NextPixelInFlag)
