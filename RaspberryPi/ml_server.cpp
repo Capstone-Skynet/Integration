@@ -34,11 +34,12 @@ float charArrToFloat(const char *fc)
 using namespace std;
 using namespace cv;
 
-std::clock_t start;
-
 unsigned char * videoData;
 int currFrame = 0;
 
+float ml_threshold = 0.25;
+
+/* Grabs the next frame from the (pre-loaded) video */
 void updateFrame(VideoCapture capture, unsigned char *data)
 {
   currFrame = (currFrame+1)%NUM_VIDEOFRAMES;
@@ -47,6 +48,7 @@ void updateFrame(VideoCapture capture, unsigned char *data)
   memcpy(data, videoData + 640*480*3*sizeof(uint8_t)*currFrame, 640*480*sizeof(uint8_t)*3);
 }
 
+/* Loads the video into memory (converting to the same format as webcam footage) */
 void loadVideo(VideoCapture capture)
 {
   videoData = (unsigned char *) malloc(640*480*3*sizeof(uint8_t)*NUM_VIDEOFRAMES);
@@ -66,7 +68,8 @@ void loadVideo(VideoCapture capture)
 
 int main(int argc, char const *argv[])
 {
-  //GSC - START
+ 
+  // Initialize socket communication to Python helper 
   int gs_sock = 0, gs_client;
   struct sockaddr_in gs_addr;
 
@@ -92,7 +95,6 @@ int main(int argc, char const *argv[])
   gs_addr.sin_addr.s_addr = INADDR_ANY;
   gs_addr.sin_port = htons(PYTHON_CLIENT_PORT);
 
-
   if (bind(gs_sock, (struct sockaddr *)&gs_addr,
            sizeof(gs_addr)) < 0)
   {
@@ -113,14 +115,13 @@ int main(int argc, char const *argv[])
     perror("accept");
     exit(EXIT_FAILURE);
   }
-  //GSC - END
 
+  // Initialize socket to PLB
   int server_fd, new_socket, valread;
   struct sockaddr_in address;
 
   int addrlen = sizeof(address);
   char buffer[1024] = {0};
-  char *hello = "Hello from server";
   char buff[256];
   char *input_imgfn = buff;
 
@@ -168,11 +169,10 @@ int main(int argc, char const *argv[])
     }
   }
 
-  //fcntl(new_socket, F_SETFL, fcntl(new_socket, F_GETFL, 0) | O_NONBLOCK);
-
-  raspicam::RaspiCam Camera;
 
   //Setup Camera
+  raspicam::RaspiCam Camera;
+
   Camera.setFormat(raspicam::RASPICAM_FORMAT_BGR);
   Camera.setExposure(raspicam::RASPICAM_EXPOSURE_AUTO);
   Camera.setCaptureSize(640, 480);
@@ -188,7 +188,6 @@ int main(int argc, char const *argv[])
   usleep(3000000);
 
   //Begin Transactional Communications
-  //strncpy(input_imgfn,"input_image.jpg", 256);
 
   unsigned char *data = (unsigned char *)malloc(640 * 480 * 3 * LATENCY_OFFSET);
   unsigned char *ml_data = (unsigned char *)malloc(640 * 480 * 3);
@@ -199,18 +198,25 @@ int main(int argc, char const *argv[])
 
   char *parameters = (char *)malloc(10);
 
-  VideoCapture capture("testvideo.mp4");    
-  loadVideo(capture); 
-  
-  double duration;
-  start = std::clock();
+  /* Setup video acquisition, if desired */
+  int useVideo = 0;
+  char videoName[100];
+  VideoCapture capture;
+  if (argc > 1) {
+    useVideo = 1;
+    VideoCapture capture(videoName);    
+    loadVideo(capture);
+  } 
 
   while (1)
   {
-    Camera.grab();
-    Camera.retrieve(ml_data, raspicam::RASPICAM_FORMAT_IGNORE);
-
-    updateFrame(capture, ml_data);
+    if(!useVideo) {
+      Camera.grab();
+      Camera.retrieve(ml_data, raspicam::RASPICAM_FORMAT_IGNORE);
+    }
+    else {
+      updateFrame(capture, ml_data);
+    }
 
     for (int k = 0; k < 3; ++k)
     {
@@ -225,11 +231,11 @@ int main(int argc, char const *argv[])
       }
     }
 
-    //image im = load_image_stb(input_imgfn,3);
     image sized = letterbox_image(im, 416, 416);
 
     if (ENABLE_ML)
     {
+      send(new_socket, &ml_threshold, 4, 0);
       send(new_socket, sized.data, (sized.h * sized.w * sized.c) * 4, 0);
     }
 
@@ -246,25 +252,25 @@ int main(int argc, char const *argv[])
 
       int results = 0;
 
-      do {
+      do { /* While we're waiting for results... */
         send(gs_client, image_transfer, 100, 0);
-        send(gs_client, data + (currOffset*640*480*3), 640 * 480 * 3, 0);
-        
-        //Camera.grab();
-        //Camera.retrieve(data, raspicam::RASPICAM_FORMAT_IGNORE);
-    
-        printf("FRAME!\n");
-        updateFrame(capture, data + (currOffset*640*480*3));
+        send(gs_client, data + (currOffset*640*480*3), 640 * 480 * 3, 0); 
 
-        currOffset = (currOffset + 1) % LATENCY_OFFSET;
-      
-        usleep(50000);
+        if(!useVideo) {
+          Camera.grab();
+          Camera.retrieve(data, raspicam::RASPICAM_FORMAT_IGNORE);
+        }
+        else {
+          updateFrame(capture, data + (currOffset*640*480*3));
+
+          currOffset = (currOffset + 1) % LATENCY_OFFSET;
+          usleep(50000);
+        }
       
         results = recv(new_socket, &numClassified, 4, MSG_DONTWAIT);
       } while (results <= 0);
 
-      //send(gs_client, image_transfer, 100, 0);
-      //send(gs_client, data, 640 * 480 * 3, 0);
+      // We've gotten results!
       int *detection = (int *)malloc(48 * sizeof(char));
       
       printf("Num Results: %d\n", numClassified);
@@ -273,6 +279,7 @@ int main(int argc, char const *argv[])
       sprintf(result, "%d", numClassified);  
       send(gs_client, result, 100, 0);
 
+      /* For each classified result */
       for (int i = 0; i < numClassified; i++)
       {
         bytesRead = 0;
@@ -292,11 +299,10 @@ int main(int argc, char const *argv[])
         send(gs_client, result, 100, 0);
       }
     }
-    else
+    else /* Dummy data for testing */
     {
       // Manually add some delay to simulation ml delay
       usleep(500000);
-      // GSC - START
       send(gs_client, result_transfer, 100, 0);
       char *type = "person";
       int height = rand() % 100;
@@ -307,10 +313,12 @@ int main(int argc, char const *argv[])
       send(gs_client, result, 100, 0);
     }
 
+    /* Read paramaters to pass onto PLB */
     int parameter_bytes = read(gs_client, parameters, 10);
     if (parameter_bytes == 8)
     {
-      //printf("new threashold: %f\n", charArrToFloat(parameters));
+      printf("Threshold: %f\n", charArrToFloat(parameters));
+      ml_threshold = charArrToFloat(parameters);
       if (parameters[7] == 'T')
       {
         //printf("Pedestrian only\n");
