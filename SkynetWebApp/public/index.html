@@ -126,6 +126,10 @@ a:hover { color: var(--link-hover-color); }
 	background-color: rgba(255, 255, 0, 0.125);
 	color: chocolate;
 }
+.log-success { 
+	background-color: rgba(0, 255, 0, 0.125);
+	color: forestgreen;
+}
 
 /* -------- */
 
@@ -158,73 +162,76 @@ a:hover { color: var(--link-hover-color); }
 <!-- Main window container -->
 <div class="container-fluid">
     <div class="row">
+		<div class="col-md-9">
+			<!-- Panel 1: main camera view -->
+			<div class="mt-3">
+				<h3>Camera View</h3>
+				<div id="draw-container" class="background-gradient py-3">
+				</div>
+			</div>
 
-		<!-- Panel 1: main camera view -->
-        <div class="col-md-9 mt-3">
-            <h3>Camera View</h3>
-            <div id="draw-container" class="background-gradient py-3">
-            </div>
-        </div>
+			<!-- Panel 3: Log -->
+			<div class="my-3">
+				<h3>Log</h3>
+				<div class="btn-group mb-2" role="group">
+					<button type="button" class="btn btn-sm btn-outline-secondary" onclick="alert('Not yet implemented')">Save to file</button>
+					<button class="btn btn-outline-danger btn-sm" onclick="clearLog()">Clear</button>
+				  </div>
+				<div id="logbox" class="logbox"></div>
+			</div>
+		</div>
 
-		<!-- Panel 2: controls panel -->
-        <div class="col-md-3 mt-3">
-			<h3>Control Panel</h3>
-
-			<section>
-				<p class="setting-category">General Settings</p>
-				<ul class="list-group">
-					<li class="list-group-item">
-						<div class="btn-group mb-2" role="group">
-							<button id="gen-start" type="button" class="btn btn-sm btn-outline-success" onclick="onGenButtonStart()">Start</button>
-							<button id="gen-stop" type="button" class="btn btn-sm btn-outline-danger" disabled onclick="onGenButtonStop()">Stop</button>
-							<button id="gen-refresh" type="button" class="btn btn-sm btn-outline-primary" onclick="onGenButtonRefresh()">Refresh</button>
-						</div>
-					</li>
-				</ul>
-			</section>
-			
-			<section>
-				<p class="setting-category">Algorthm Settings</p>
-				<ul class="list-group">
-					<li class="list-group-item">
-						<p>Sensitivity: <span id="curr_threshold_val">--</span></p>
-						<input id="threshold_slider" class="setting-slider" type="range" min="0" max="1" value=0.5 step="0.01" onchange="changeMLThreshold(this.value)">
-					</li>
-					<li class="list-group-item">
-						<p>Model detection</p>
-						<input class='radio-detection-sel' type="radio" id="rb1" name="mdetection" value="Pedestrian Only" onchange="model_detection_update2(this)">  
-						&nbsp;<label for="rb1">Detect persons</label><br>
-						<input class='radio-detection-sel' type="radio" id="rb2" name="mdetection" checked value="All Classes" checked onchange="model_detection_update2(this)">
-						&nbsp;<label for="rb2">Detect all classes</label><br>
-					</li>
-				</ul>
-			</section>
-
-
-			<section>
-				<p class="setting-category">Canvas Settings</p>
-				<ul class="list-group">
-					<li class="list-group-item">
-						<p>Frame rate: <span id="canvas-fr-label">--</span></p>
-						<input id="canvas-fr-slider" class="setting-slider" type="range" min="1" max="30" value=15 step="1" onchange="changeCanvasFPS(this.value)">
-					</li>
-					<li class="list-group-item">
-						<p>Bounding box opacity: <span id="canvas-bb-opacity-label">--</span></p>
-						<input id="canvas-bb-opacity-slider" class="setting-slider" type="range" min=0 max=1 value=1 step=0.1 onchange="changeCanvasBBoxOpacity(this.value)">
-					</li>
-				</ul>
-			</section>
-        </div>
-
-		<!-- Panel 3: Log -->
-        <div class="col-12 my-3">
-			<h3>Log</h3>
-			<div class="btn-group mb-2" role="group">
-				<button type="button" class="btn btn-sm btn-outline-secondary" onclick="alert('Not yet implemented')">Save to file</button>
-				<button class="btn btn-outline-danger btn-sm" onclick="clearLog()">Clear</button>
-			  </div>
-			<div id="logbox" class="logbox"></div>
-        </div>
+		<div class="col-md-3" style='background-color: rgba(0, 0, 0, 0.05);'>
+			<!-- Panel 2: controls panel -->
+			<div class="mt-3">
+				<h3>Control Panel</h3>
+	
+				<section>
+					<p class="setting-category">General Settings</p>
+					<ul class="list-group">
+						<li class="list-group-item">
+							<div class="btn-group mb-2" role="group">
+								<button id="gen-start" type="button" class="btn btn-sm btn-outline-success" onclick="onGenButtonStart()">Start</button>
+								<button id="gen-stop" type="button" class="btn btn-sm btn-outline-danger" disabled onclick="onGenButtonStop()">Stop</button>
+								<button id="gen-refresh" type="button" class="btn btn-sm btn-outline-primary" onclick="onGenButtonRefresh()">Refresh</button>
+							</div>
+						</li>
+					</ul>
+				</section>
+				
+				<section>
+					<p class="setting-category">Algorthm Settings</p>
+					<ul class="list-group">
+						<li class="list-group-item">
+							<p>Sensitivity: <span id="curr_threshold_val">--</span></p>
+							<input id="threshold_slider" class="setting-slider" type="range" min="0" max="1" value=0.5 step="0.01" onchange="changeMLThreshold(this.value)">
+						</li>
+						<li class="list-group-item">
+							<p>Model detection</p>
+							<input class='radio-detection-sel' type="radio" id="rb1" name="mdetection" value="Pedestrian Only" onchange="model_detection_update2(this)">  
+							&nbsp;<label for="rb1">Detect persons</label><br>
+							<input class='radio-detection-sel' type="radio" id="rb2" name="mdetection" checked value="All Classes" checked onchange="model_detection_update2(this)">
+							&nbsp;<label for="rb2">Detect all classes</label><br>
+						</li>
+					</ul>
+				</section>
+	
+	
+				<section>
+					<p class="setting-category">Canvas Settings</p>
+					<ul class="list-group">
+						<li class="list-group-item">
+							<p>Frame rate: <span id="canvas-fr-label">--</span></p>
+							<input id="canvas-fr-slider" class="setting-slider" type="range" min="1" max="30" value=15 step="1" onchange="changeCanvasFPS(this.value)">
+						</li>
+						<li class="list-group-item">
+							<p>Bounding box opacity: <span id="canvas-bb-opacity-label">--</span></p>
+							<input id="canvas-bb-opacity-slider" class="setting-slider" type="range" min=0 max=1 value=1 step=0.1 onchange="changeCanvasBBoxOpacity(this.value)">
+						</li>
+					</ul>
+				</section>
+			</div>
+		</div>
     </div>
 </div>
 
@@ -304,6 +311,7 @@ function addLog(msg, cls) {
 function addLogMessage(message) { addLog(message, ''); }
 function addLogWarning(message) { addLog(message, 'log-warning'); }
 function addLogError(message) { addLog(message, 'log-error'); }
+function addLogSuccess(message) { addLog(message, 'log-success'); }
 function clearLog() { $('#logbox').empty(); }
 
 // Entry
