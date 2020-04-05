@@ -20,7 +20,7 @@ void fetchImage(int socket, image img)
 
     bytesRead = 0;
     while (bytesRead < imageLength) {
-        printf("%d bytes fetched!\n", bytesRead);
+        //printf("%d bytes fetched!\n", bytesRead);
         result = read(socket, ((char *) img.data) + bytesRead, imageLength - bytesRead);
 
         if(result < 1) {
