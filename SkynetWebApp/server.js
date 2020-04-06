@@ -7,10 +7,13 @@ app.use(express.static('public'))
 const SERVERPORT = 80;
 let server = app.listen(SERVERPORT);
 let io = require('socket.io')(server);
-let MLDataParseRegex = /(?:Type|type)\s*:\s*([^,]+)\s*,\s*(?:Width|width)\s*:\s*(\d+)\s*,\s*(?:Height|height)\s*:\s*(\d+)\s*,\s*[xX]\s*:\s*([\d.]+)\s*,\s*[yY]\s*:\s*([\d.]+)/gm
+let MLDataParseRegex = /(?:Type|type)\s*:\s*([^,]+)\s*,\s*(?:Width|width)\s*:\s*(\d+)\s*,\s*(?:Height|height)\s*:\s*(\d+)\s*,\s*[xX]\s*:\s*([\d.]+)\s*,\s*[yY]\s*:\s*([\d.]+)/m
 
 // Set up connections when socket connects
 io.on('connection', (socket) => {
+
+  // Acknowlege connection (debug)
+  console.log('New connection');
 
   // Receiving image from Python program
   socket.on('PY_IMG_DATA', (imageData) => {
@@ -30,7 +33,11 @@ io.on('connection', (socket) => {
         x: MLDataMatch[4],
         y: MLDataMatch[5]
       });
+    } else{
+              console.log("Result: " + result)
     }
+    
+
   });
 
   socket.on('PY_ML_CLEAR', ()=> {
